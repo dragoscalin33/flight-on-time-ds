@@ -8,7 +8,6 @@ import os
 app = FastAPI(title="FlightOnTime DS API")
 
 # --- 1. CARGA DEL MODELO ---
-# Buscamos el modelo en la misma carpeta donde está este script
 current_dir = os.path.dirname(__file__)
 model_path = os.path.join(current_dir, "flight_model_v1.joblib")
 
@@ -21,26 +20,26 @@ try:
     encoders['companhia'] = artifacts['le_companhia']
     encoders['origem'] = artifacts['le_origem']
     encoders['destino'] = artifacts['le_destino']
-    print(f"✅ Modelo cargado correctamente desde: {model_path}")
+    print(f"✅ Modelo cargado correctamente.")
 except Exception as e:
     print(f"⚠️ Error cargando el modelo: {e}")
 
-# --- 2. DEFINIR EL FORMATO DE ENTRADA (JSON) ---
+# --- 2. NUEVO CONTRATO DE DATOS (Sin distancia) ---
 class FlightInput(BaseModel):
     companhia: str
     origem: str
     destino: str
-    data_partida: str
+    data_partida: str # Esperamos formato ISO
 
 def safe_transform(encoder, value):
     try:
         return int(encoder.transform([value])[0])
     except ValueError:
-        return 0 # Si no conocemos el aeropuerto, ponemos 0 para no romper la API
+        return 0
 
 @app.get("/")
 def home():
-    return {"message": "FlightOnTime API is running!", "status": "OK"}
+    return {"status": "API is running"}
 
 @app.post("/predict")
 def predict_flight(flight: FlightInput):
@@ -48,10 +47,9 @@ def predict_flight(flight: FlightInput):
         raise HTTPException(status_code=500, detail="Modelo no cargado")
 
     try:
-        # Procesar fecha
+        # Procesar fecha (Pandas maneja ISO 8601 y UTC automáticamente)
         fecha = pd.to_datetime(flight.data_partida)
         
-        # Crear DataFrame con las features
         input_data = pd.DataFrame([{
             'companhia_encoded': safe_transform(encoders['companhia'], flight.companhia),
             'origem_encoded': safe_transform(encoders['origem'], flight.origem),
@@ -63,11 +61,13 @@ def predict_flight(flight: FlightInput):
         
         # Predecir
         prob = model.predict_proba(input_data)[0][1]
-        prediction = 1 if prob > 0.5 else 0
+        
+        # Lógica Booleana (A petición de Ricardo)
+        es_atrasado = bool(prob > 0.5)
         
         return {
-            "previsao": "Atrasado" if prediction == 1 else "Pontual",
-            "probabilidade_atraso": round(float(prob), 4)
+            "atrasado": es_atrasado,      # Devuelve true/false
+            "probabilidade": round(float(prob), 4)
         }
 
     except Exception as e:
