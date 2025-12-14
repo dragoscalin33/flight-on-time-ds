@@ -1,6 +1,6 @@
 #  FlightOnTime - Motor de Inteligência Artificial
 
-> **Status:** 🚀 Em Produção (v3.0.0-CAT) | **Recall de Segurança:** 89.4%
+> **Status:**  Em Produção (v3.0.0-CAT) | **Recall de Segurança:** 89.4%
 
 Este repositório contém o **Core de Data Science** do projeto FlightOnTime. Nossa missão é prever atrasos em voos comerciais no Brasil utilizando Machine Learning avançado, focando na segurança e planejamento do passageiro.
 
@@ -149,12 +149,26 @@ curl -X POST "http://flight-on-time.ds.vm3.arbly.com/predict" \
 
 ---
 
-## Próximos Passos (Roadmap)
+## Roadmap Estratégico: O Futuro do FlightOnTime (Fase 2)
 
-Embora o modelo atual seja robusto (89% Recall), identificamos oportunidades para a versão 2.0:
+O MVP atual (v3.0) atinge **89% de Recall** focando em variáveis endógenas (Data, Rota, Companhia). Para a próxima fase, desenhamos uma arquitetura para capturar variáveis exógenas e dinâmicas, visando superar a barreira dos 92% de assertividade.
 
-1. **Integração Meteorológica em Tempo Real:** Conectar com APIs de clima (OpenWeather) para considerar chuvas/tempestades no momento da predição.
-2. **Monitoramento de Tráfego Aéreo:** Incluir variáveis sobre congestionamento de pistas em tempo real.
+### 1. ⛈️ Integração Meteorológica em Tempo Real (Hiper-local)
+* **O Desafio:** O modelo atual aprendeu a "sazonalidade climática" (ex: sabe que chove muito em SP em janeiro). Porém, ele pode gerar um "Falso Positivo" em um dia de janeiro que esteja ensolarado.
+* **A Solução:** Conectar o backend a APIs de clima *Enterprise* (NOAA / OpenWeatherMap) para injetar dados reais do momento da decolagem.
+* **Novas Features:**
+    * `precipitacao_mm`: Intensidade da chuva na hora exata.
+    * `vento_cruzado_kmh`: Ventos laterais que impedem pousos/decolagens.
+    * `teto_visibilidade_m`: Neblina fechando o aeroporto.
+* **Ganho Estimado:** Redução de 15% nos alertas falsos (melhora na Precisão).
+
+### 2. 🛫 Monitoramento de Tráfego Aéreo (Efeito Dominó)
+* **O Desafio:** Atrasos na aviação funcionam em cascata. Se um voo atrasa em Brasília, a aeronave chega atrasada em Guarulhos, atrasando a próxima decolagem, mesmo com tempo bom.
+* **A Solução:** Integrar com APIs de tráfego aéreo (FlightAware / FlightRadar24) para calcular o congestionamento das pistas.
+* **Novas Features:**
+    * `fila_decolagem_atual`: Quantos aviões estão aguardando na pista.
+    * `atraso_medio_aeroporto`: Média de atraso dos últimos 60 minutos no aeroporto de origem.
+* **Ganho Estimado:** Capacidade de prever atrasos sistêmicos que não dependem da companhia aérea.
 
 ---
 
