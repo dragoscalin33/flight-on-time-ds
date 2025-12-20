@@ -1,7 +1,6 @@
-```markdown
 #  FlightOnTime - Motor de Inteligência Artificial
 
-> **Status:** Em Produção (v4.0.0-WeatherAware) | **Recall de Segurança:** 86.0%
+> **Status:**  Em Produção (v4.0.0-WeatherAware) | **Recall de Segurança:** 86.0%
 
 Este repositório contém o **Core de Data Science** do projeto FlightOnTime. Nossa missão é prever atrasos em voos comerciais no Brasil utilizando Machine Learning avançado enriquecido com dados meteorológicos, focando na segurança e planejamento do passageiro.
 
@@ -165,4 +164,3 @@ Com a entrega da v4.0 (Clima), o foco muda para dados de tráfego aéreo em temp
 
 1. Execute o Notebook 1 para gerar o arquivo `BrFlights_Enriched_v4.csv`.
 2. Execute o Notebook 2 para treinar o modelo.
-```
