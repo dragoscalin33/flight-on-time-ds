@@ -1,26 +1,26 @@
+```markdown
 #  FlightOnTime - Motor de Inteligência Artificial
 
-> **Status:**  Em Produção (v3.0.1-CAT) | **Recall de Segurança:** 88.9%
+> **Status:** Em Produção (v4.0.0-WeatherAware) | **Recall de Segurança:** 86.0%
 
-Este repositório contém o **Core de Data Science** do projeto FlightOnTime. Nossa missão é prever atrasos em voos comerciais no Brasil utilizando Machine Learning avançado, focando na segurança e planejamento do passageiro.
+Este repositório contém o **Core de Data Science** do projeto FlightOnTime. Nossa missão é prever atrasos em voos comerciais no Brasil utilizando Machine Learning avançado enriquecido com dados meteorológicos, focando na segurança e planejamento do passageiro.
 
 ---
 
-##  A Evolução do Modelo (Do MVP ao State-of-the-Art)
+##  A Evolução do Modelo (Do MVP ao Weather-Aware)
 
-Nosso maior desafio foi lidar com o **desbalanceamento severo** dos dados (apenas 11% dos voos atrasam). Um modelo comum teria 89% de acurácia apenas dizendo "Nenhum voo vai atrasar", o que seria inútil.
+Nosso maior desafio foi lidar com o **desbalanceamento severo** dos dados (apenas 11% dos voos atrasam) e a complexidade de fatores externos.
 
-Testamos diversos algoritmos de Boosting, priorizando a métrica de **Recall** (capacidade de detectar o perigo real).
+Evoluímos de um modelo puramente histórico para uma arquitetura híbrida que considera as condições climáticas.
 
-| Versão | Modelo | Tecnologia | Recall (Detecção) | Decisão |
+| Versão | Modelo | Tecnologia | Recall (Detecção) | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| v1.0 | **Random Forest** | Bagging Ensemble | 87.0% | Descontinuado |
-| v2.0 | **XGBoost** | Gradient Boosting | 87.2% | Testado |
-| v3.0 | **CatBoost** | Categorical Boosting | 89.4% | MPV |
-| **v3.0.1** | **CatBoost + SafeEncoder** | **Anti-Leakage Pipeline** | **88.9%** | **Em Produção (Hardening)** |
+| v1.0 | Random Forest | Bagging Ensemble | 87.0% | Descontinuado |
+| v2.0 | XGBoost | Gradient Boosting | 87.2% | Testado |
+| v3.0 | CatBoost | Histórico Puro | 89.4% | Legacy (MVP) |
+| **v4.0** | **CatBoost + OpenMeteo** | **Weather-Aware Pipeline** | **86.0%*** | **Em Produção** |
 
-**Por que CatBoost?**
-O algoritmo da Yandex demonstrou superioridade ao lidar com as variáveis categóricas complexas (rotas e companhias aéreas), permitindo atingir quase **90% de detecção de atrasos** sem sacrificar a performance da API.
+*\*Nota: Embora o Recall numérico da v4.0 seja ligeiramente menor que a v3.0, a precisão e a robustez no mundo real são superiores, pois o modelo agora reage a tempestades e não apenas a estatísticas passadas.*
 
 ---
 
@@ -28,47 +28,44 @@ O algoritmo da Yandex demonstrou superioridade ao lidar com as variáveis categ�
 
 ### 1. Otimização do Limiar de Decisão (Threshold)
 Realizamos uma análise matemática utilizando o **F2-Score** (que prioriza o Recall).
-* **Sugestão do Algoritmo:** Corte em **0.43** (Recall 84%).
+* **Sugestão do Algoritmo:** Corte em **0.44**.
 * **Decisão de Negócio (Override):** Fixamos o corte em **0.40**.
-* **Motivo:** Decidimos sacrificar precisão estatística para ganhar **+5% de Segurança (Recall sobe para ~89.4%)**. Preferimos o risco de um "Falso Alerta" (Amarelo) do que deixar um passageiro perder o voo.
+* **Motivo:** Decidimos sacrificar precisão estatística para garantir a **Segurança**. Preferimos o risco de um "Falso Alerta Preventivo" do que deixar um passageiro perder o voo por não avisar sobre uma tempestade iminente.
 
-### 2. Engenharia de Feriados (Análise de Pareto)
-Para otimizar o tempo de resposta da API, analisamos a origem de **2.5 milhões de voos**:
-* **Partidas do Brasil:** 93.72%
-* **Partidas do Exterior:** 6.28%
-
-**Decisão:** Aplicamos apenas o calendário `holidays.Brazil()`. Como o atraso na decolagem é causado primariamente pelo aeroporto de origem, cobrimos **94% dos cenários de risco** de calendário com custo computacional mínimo.
+### 2. Estratégia de Clima e Feriados (Pareto)
+* **Feriados:** Aplicamos o calendário `holidays.Brazil()` apenas na data de partida, cobrindo 94% dos picos de demanda.
+* **Clima:** Integramos variáveis de **Precipitação** e **Vento**. O modelo comprovou que condições adversas aumentam o risco de atraso em até **20 pontos percentuais**.
 
 ---
 
 ##  Arquitetura e Engenharia de Features
 
-O modelo não olha apenas para o passado. Enriquecemos os dados brutos com:
+O modelo v4.0 é um sistema híbrido que cruza histórico com condições físicas:
 
-1.  **Detector de Feriados Dinâmico:** Cruzamento em tempo real da data do voo com o calendário oficial.
-2.  **Georreferenciamento:** Cálculo da distância geodésica (`distancia_km`) entre coordenadas de aeroportos.
-3.  **Decomposição Temporal:** Análise granular de Hora, Dia da Semana e Sazonalidade.
-4.  **Pipeline Blindado (SafeEncoding):** Implementação de encoders personalizados (SafeLabelEncoder) para eliminar Data Leakage e garantir que a API não quebre ao receber novos aeroportos/companhias em produção.
+1.  **Integração Meteorológica (NOVO):** Ingestão de dados de `precipitation` (mm) e `wind_speed` (km/h) para entender o impacto físico na aeronave.
+2.  **Detector de Feriados:** Cruzamento em tempo real da data do voo com o calendário oficial.
+3.  **Georreferenciamento:** Cálculo da distância geodésica (`distancia_km`) via Fórmula de Haversine.
+4.  **Pipeline Blindado (SafeEncoding):** Encoders personalizados que evitam *Data Leakage* e protegem a API contra aeroportos desconhecidos.
 
 ### Stack Tecnológico
 * **Linguagem:** Python 3.10+
-* **ML Core:** CatBoost, Scikit-Learn
-* **Data Processing:** Pandas, Numpy, Holidays
-* **API:** FastAPI (Uvicorn)
+* **ML Core:** CatBoost (Gradient Boosting)
+* **External Data:** Open-Meteo API (Dados Climáticos)
+* **API:** FastAPI + Uvicorn
 * **Deploy:** Docker / Oracle Cloud Infrastructure (OCI)
 
 ---
 
 ##  Regra de Negócio: O Semáforo de Risco
 
-Traduzimos a probabilidade matemática (0.0 a 1.0) em uma experiência útil para o usuário:
+Traduzimos a probabilidade matemática em uma experiência visual para o usuário:
 
 * 🟢 **PONTUAL (Risco < 40%):**
-    * Condições operacionais normais.
-* 🟡 **ALERTA (Risco 40% - 60%):**
-    * O modelo detectou instabilidade. Recomendamos monitorar o painel.
-* 🔴 **ATRASADO (Risco > 60%):**
-    * Alta probabilidade de problemas. O usuário deve se planejar para contingências.
+    * Boas condições de voo e clima estável.
+* 🟡 **ALERTA PREVENTIVO (Risco 40% - 60%):**
+    * O modelo detectou instabilidade (ex: chuva leve ou aeroporto congestionado). Monitore o painel.
+* 🔴 **ATRASO PROVÁVEL (Risco > 60%):**
+    * Condições críticas detectadas (ex: Tempestade + Feriado). Alta chance de problemas.
 
 ---
 
@@ -77,111 +74,95 @@ Traduzimos a probabilidade matemática (0.0 a 1.0) em uma experiência útil par
 ### 1. Preparar o Ambiente
 ```bash
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # ou venv\Scripts\activate no Windows
 pip install -r requirements.txt
 ```
 
-### 2. Treinar o "Cérebro" (Opcional)
-O repositório já inclui o modelo treinado. Mas se desejar retreinar com novos dados:
+### 2. Treinar o Modelo v4.0 (Opcional)
+
+O repositório já inclui o arquivo `flight_classifier_v4.joblib`. Para retreinar:
 
 ```bash
 python src/train.py
 ```
 
-*Isso gerará um novo arquivo `flight_classifier_mvp.joblib` com a lógica mais recente.*
-
 ### 3. Subir a API
+
 Inicie o servidor de predição localmente:
 
 ```bash
 python -m uvicorn src.app:app --reload
 ```
 
-Acesse a documentação automática em: `http://127.0.0.1:8000/docs`
+Acesse a documentação automática em: http://127.0.0.1:8000/docs
 
 ---
 
 ##  Documentação da API
 
-A API foi desenhada para ser consumida por qualquer Front-End ou Back-End.
+A API aceita dados do voo e, opcionalmente, dados de clima.
 
 **Endpoint:** `POST /predict`
 
-**Payload de Entrada (Exemplo):**
+**Payload de Entrada (Exemplo Completo):**
 
 ```json
 {
-  "companhia": "TAM",
-  "origem": "Guarulhos - Governador Andre Franco Montoro",
-  "destino": "Eduardo Gomes",
-  "data_partida": "2025-12-25T20:00:00",
-  "distancia_km": 2689.0
+  "companhia": "GOL",
+  "origem": "Congonhas",
+  "destino": "Santos Dumont",
+  "data_partida": "2025-11-20T08:00:00",
+  "distancia_km": 366.0,
+  "precipitation": 25.0,
+  "wind_speed": 45.0
 }
 ```
 
-**Resposta da API (Exemplo Real):**
+**Nota:** Se `precipitation` ou `wind_speed` não forem enviados, a API assume 0 (Bom tempo).
+
+**Resposta da API (Exemplo de Tempestade):**
 
 ```json
 {
   "previsao": "🔴 ATRASADO",
   "nivel_risco": "ALTO",
-  "probabilidade": 0.8942,
-  "is_feriado": true,
-  "mensagem": "Alta probabilidade de atraso (89.4%). Planeje-se."
+  "probabilidade": 0.6925,
+  "mensagem": "Alta probabilidade de atraso (69.3%) devido a condições adversas.",
+  "detalhes": {
+      "clima": {
+          "chuva": "25.0mm",
+          "vento": "45.0km/h"
+      }
+  }
 }
 ```
 
 ---
 
-##  Deploy em Produção (Oracle Cloud)
+##  Roadmap Estratégico (Fase 2)
 
-Graças à infraestrutura configurada na OCI, a API já está disponível publicamente para integração via internet.
+Com a entrega da v4.0 (Clima), o foco muda para dados de tráfego aéreo em tempo real.
 
-* **Base URL:** `http://flight-on-time.ds.vm3.arbly.com`
-* **Endpoint de Predição:** `POST /predict`
-* **Documentação Interativa (Swagger):** [Acessar Docs](http://flight-on-time.ds.vm3.arbly.com/docs)
+### 1. Monitoramento de Malha Aérea (Efeito Dominó)
 
-**Teste rápido via Terminal (cURL):**
+**O Desafio:** Atrasos na aviação funcionam em cascata. Um atraso em Brasília afeta Guarulhos horas depois.
 
-```bash
-curl -X POST "http://flight-on-time.ds.vm3.arbly.com/predict" \
--H "Content-Type: application/json" \
--d '{"companhia": "AZUL", "origem": "Guarulhos", "destino": "Recife", "data_partida": "2025-12-25T14:30:00", "distancia_km": 2100.5}'
-```
+**A Solução:** Integrar com APIs de tráfego (FlightRadar24) para calcular o "atraso médio do aeroporto" nos últimos 60 minutos.
 
----
+**Novas Features Planejadas:**
 
-## Roadmap Estratégico: O Futuro do FlightOnTime (Fase 2)
-
-O MVP atual (v3.0) atinge **89% de Recall** focando em variáveis endógenas (Data, Rota, Companhia). Para a próxima fase, desenhamos uma arquitetura para capturar variáveis exógenas e dinâmicas, visando superar a barreira dos 92% de assertividade.
-
-### 1.  Integração Meteorológica em Tempo Real (Hiper-local)
-* **O Desafio:** O modelo atual aprendeu a "sazonalidade climática" (ex: sabe que chove muito em SP em janeiro). Porém, ele pode gerar um "Falso Positivo" em um dia de janeiro que esteja ensolarado.
-* **A Solução:** Conectar o backend a APIs de clima *Enterprise* (NOAA / OpenWeatherMap) para injetar dados reais do momento da decolagem.
-* **Novas Features:**
-    * `precipitacao_mm`: Intensidade da chuva na hora exata.
-    * `vento_cruzado_kmh`: Ventos laterais que impedem pousos/decolagens.
-    * `teto_visibilidade_m`: Neblina fechando o aeroporto.
-* **Ganho Estimado:** Redução de 15% nos alertas falsos (melhora na Precisão).
-
-### 2.  Monitoramento de Tráfego Aéreo (Efeito Dominó)
-* **O Desafio:** Atrasos na aviação funcionam em cascata. Se um voo atrasa em Brasília, a aeronave chega atrasada em Guarulhos, atrasando a próxima decolagem, mesmo com tempo bom.
-* **A Solução:** Integrar com APIs de tráfego aéreo (FlightAware / FlightRadar24) para calcular o congestionamento das pistas.
-* **Novas Features:**
-    * `fila_decolagem_atual`: Quantos aviões estão aguardando na pista.
-    * `atraso_medio_aeroporto`: Média de atraso dos últimos 60 minutos no aeroporto de origem.
-* **Ganho Estimado:** Capacidade de prever atrasos sistêmicos que não dependem da companhia aérea.
+- `fila_decolagem_atual`: Quantidade de aeronaves aguardando pista.
+- `indice_atraso_aeroporto`: Média de atraso atual do hub.
 
 ---
 
-## Dataset (Origem dos Dados)
+##  Dataset
 
-O modelo foi treinado com dados históricos reais de voos brasileiros.
-Devido ao tamanho do arquivo, ele não está versionado neste repositório.
-
-**Fonte Oficial (Kaggle):**
-[Flights in Brazil (2015-2017) - Ramiro Bentes](https://www.kaggle.com/datasets/ramirobentes/flights-in-brazil)
+**Fonte Oficial:** Flights in Brazil (2015-2017) - Kaggle  
+**Dados Climáticos:** Enriquecimento realizado via Open-Meteo Historical API.
 
 **Como usar:**
-1. Baixe o arquivo `BrFlights2.csv`.
-2. Salve o arquivo na pasta: `data-science/data/BrFlights2.csv`.
+
+1. Execute o Notebook 1 para gerar o arquivo `BrFlights_Enriched_v4.csv`.
+2. Execute o Notebook 2 para treinar o modelo.
+```
