@@ -17,7 +17,7 @@ flight-on-time/
 ├── data-science/   (Core de ML, Python, CatBoost)
 ├── back-end/       (API Gateway, Java, Spring Boot)
 ├── front-end/      (Interface Web, React, Vite)
-└──infraestructure/ (Oracle Cloud Infrastructure, OCI)
+└── infraestructure/ (Oracle Cloud Infrastructure, OCI)
 ```
 
 ---
