@@ -28,6 +28,12 @@ flight-on-time/
 **Directory:** [`/data-science-prod`](./data-science-prod)
 [Full Technical Documentation](./data-science-prod/README.md)
 
+<p align="center">
+  <a href="https://htmlpreview.github.io/?https://github.com/rrbotlab/flight-on-time/blob/main/data-science-prod/docs/pipeline_overview.html">
+    <img src="https://img.shields.io/badge/%F0%9F%94%8D_View_Interactive-Pipeline_Diagram-blueviolet?style=for-the-badge" alt="View Pipeline Diagram">
+  </a>
+</p>
+
 The evolution from notebook-based research to a **production-grade ML pipeline**. This is the architecture you'd deploy in a real MLOps environment.
 
 | Aspect | v5.0 (Notebook) | v6.0 (Production) |
