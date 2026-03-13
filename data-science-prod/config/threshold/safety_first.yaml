@@ -1,0 +1,17 @@
+# Threshold Strategy — Safety First (Business Override)
+# Mathematical suggestion (F2-optimal) is ~0.43, but business chose 0.35
+# to maximize Recall (>90%) at the cost of slightly more false alerts.
+
+value: 0.35
+metric: "f2"          # metric used for tuning
+beta: 2               # F-beta weight (2 = double weight on Recall)
+search_range:
+  min: 0.10
+  max: 0.90
+  steps: 100
+
+# Risk semaphore rules (used by the API)
+semaphore:
+  green_max: 0.35     # < 0.35  -> On-Time (low risk)
+  yellow_max: 0.70    # < 0.70  -> Preventive Alert (moderate risk)
+                       # >= 0.70 -> Likely Delayed (high risk)

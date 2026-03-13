@@ -1,0 +1,9 @@
+# CatBoost — Default Production Config
+name: catboost_native
+iterations: 500
+learning_rate: 0.1
+depth: 6
+auto_class_weights: "Balanced"
+random_seed: 42
+verbose: 50
+allow_writing_files: false

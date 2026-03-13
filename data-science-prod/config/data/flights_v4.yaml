@@ -1,0 +1,44 @@
+# Data Source — Enriched Flights v4
+raw_path: "data/raw/BrFlights_Enriched_v4.csv"
+low_memory: false
+
+# Scope filter — only completed flights
+scope_column: "Situacao.Voo"
+scope_value: "Realizado"
+
+# Columns to drop (data leakage / not useful for prediction)
+columns_to_drop:
+  - "visibility"
+  - "time"
+  - "data_hora_merge"
+  - "Codigo.Justificativa"
+
+# Datetime columns to parse
+datetime_columns:
+  - "Partida.Prevista"
+  - "Partida.Real"
+  - "Chegada.Prevista"
+  - "Chegada.Real"
+
+# Coordinate columns (for type coercion)
+coordinate_columns:
+  - "LatOrig"
+  - "LongOrig"
+  - "LatDest"
+  - "LongDest"
+
+# Weather columns to coerce numeric
+weather_columns:
+  - "precipitation"
+  - "wind_speed"
+
+# Outlier removal rules
+outliers:
+  min_delay_minutes: -60
+  max_delay_minutes: 1440
+  min_duration_minutes: 0
+
+# Target definition
+target:
+  column: "target"
+  delay_threshold_minutes: 15
