@@ -1,0 +1,42 @@
+# =============================================================================
+# FlightOnTime Production Pipeline — Main Hydra Config
+# =============================================================================
+# Usage:
+#   python -m src.models.train                          # defaults
+#   python -m src.models.train model=catboost_tuned     # override group
+#   python -m src.models.train model.iterations=1000    # override param
+# =============================================================================
+
+defaults:
+  - model: catboost
+  - data: flights_v4
+  - features: weather_aware
+  - threshold: safety_first
+  - _self_
+
+# ---- MLflow ----
+mlflow:
+  tracking_uri: "mlruns"            # local dir; swap to server URI in prod
+  experiment_name: "FlightOnTime"
+  register_model: true              # push best model to Model Registry
+
+# ---- Cross-Validation ----
+cv:
+  n_splits: 5
+  shuffle: true
+  random_state: 42
+
+# ---- Train / Test Split ----
+split:
+  test_size: 0.20
+  random_state: 42
+  stratify: true
+
+# ---- Reproducibility ----
+seed: 42
+
+# ---- Output paths (relative to hydra.run.dir) ----
+output:
+  model_dir: "models"
+  plots_dir: "plots"
+  artifacts_dir: "artifacts"

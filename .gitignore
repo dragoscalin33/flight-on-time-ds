@@ -71,3 +71,20 @@ data-science/data/processed/BrFlights*.csv
 # 4. Modelos - Permitir APENAS o modelo final V4
 *.joblib
 !data-science/src/flight_classifier_v4.joblib
+
+# ==================================================
+#  DATA-SCIENCE-PROD (Production Pipeline)
+# ==================================================
+
+# Data files (large CSVs)
+data-science-prod/data/raw/*.csv
+data-science-prod/data/processed/*.csv
+data-science-prod/data/references/*.csv
+
+# Model artifacts & MLflow
+data-science-prod/models/*.joblib
+data-science-prod/artifacts/
+data-science-prod/mlruns/
+
+# Hydra outputs
+data-science-prod/outputs/

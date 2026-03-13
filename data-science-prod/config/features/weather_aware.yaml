@@ -1,0 +1,23 @@
+# Feature Set — Weather-Aware v5.0
+# All features used by the model, in training order.
+
+categorical:
+  - "companhia"      # airline name (CatBoost native encoding)
+  - "origem"         # origin airport
+  - "destino"        # destination airport
+
+numerical:
+  - "distancia_km"   # geodesic distance via Haversine formula
+  - "hora"           # scheduled departure hour (0-23)
+  - "dia_semana"     # day of week (0=Mon, 6=Sun)
+  - "mes"            # month (1-12)
+  - "is_holiday"     # Brazilian public holiday flag (0/1)
+  - "precipitation"  # rainfall in mm (from Open-Meteo API)
+  - "wind_speed"     # wind speed in km/h (from Open-Meteo API)
+  - "clima_imputado" # weather imputation flag: 1=imputed, 0=actual data
+
+# Column renaming (raw dataset names -> model feature names)
+rename_map:
+  "Companhia.Aerea": "companhia"
+  "Aeroporto.Origem": "origem"
+  "Aeroporto.Destino": "destino"

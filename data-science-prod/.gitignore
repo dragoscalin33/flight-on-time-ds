@@ -1,0 +1,27 @@
+# Data (too large for git)
+data/raw/*.csv
+data/processed/*.csv
+data/references/*.csv
+
+# Model artifacts
+models/*.joblib
+artifacts/*.joblib
+mlruns/
+
+# Hydra outputs
+outputs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
