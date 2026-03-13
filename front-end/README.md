@@ -31,7 +31,7 @@ Built with **React + Vite + Tailwind CSS**, it communicates with the backend API
 
 ## Prerequisites
 
-- Node.js (recommended v16+)
+- Node.js (recommended v18+)
 - NPM or Yarn
 
 ---

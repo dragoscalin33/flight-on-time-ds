@@ -22,14 +22,14 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# --- Ambientes Virtuais ---
+# --- Virtual Environments ---
 .env
 .venv
 env/
 venv/
 ENV/
 
-# --- IDE e Sistema ---
+# --- IDE & System ---
 .idea/
 .vscode/
 *.swp
@@ -40,7 +40,7 @@ ENV/
 profile_default/
 ipython_config.py
 
-# --- Logs e Testes ---
+# --- Logs & Tests ---
 *.log
 htmlcov/
 .tox/
@@ -49,42 +49,30 @@ htmlcov/
 nosetests.xml
 coverage.xml
 
-# --- Marimo (Ferramenta de Notebooks) ---
+# --- Marimo (Notebook Tool) ---
 marimo/_static/
 marimo/_lsp/
 __marimo__/
 
 # ==================================================
-#  REGRAS ESPECÍFICAS DO PROJETO (FLIGHT ON TIME)
+#  PROJECT-SPECIFIC RULES (FLIGHT ON TIME)
 # ==================================================
 
-# 1. Ignorar a pasta de dados brutos inteira
+# --- data-science (v5.0 Research) ---
+
+# Raw data (large files)
 data-science/data/raw/*
 
-# 2. Ignorar CSVs pesados processados (ex: BrFlights2.csv)
+# Heavy processed CSVs
 data-science/data/processed/BrFlights*.csv
 
-# 3. EXCEÇÕES - Arquivos que DEVEM subir
+# Exceptions — files that MUST be tracked
 !data-science/data/processed/weather_history_2015_2017.csv
 !data-science/data/references/*.csv
 
-# 4. Modelos - Permitir APENAS o modelo final V4
+# Models — only allow the final v4 model
 *.joblib
 !data-science/src/flight_classifier_v4.joblib
 
-# ==================================================
-#  DATA-SCIENCE-PROD (Production Pipeline)
-# ==================================================
-
-# Data files (large CSVs)
-data-science-prod/data/raw/*.csv
-data-science-prod/data/processed/*.csv
-data-science-prod/data/references/*.csv
-
-# Model artifacts & MLflow
-data-science-prod/models/*.joblib
-data-science-prod/artifacts/
-data-science-prod/mlruns/
-
-# Hydra outputs
-data-science-prod/outputs/
+# --- data-science-prod (v6.0 Production Pipeline) ---
+# Additional rules in data-science-prod/.gitignore

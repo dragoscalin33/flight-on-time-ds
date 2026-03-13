@@ -27,7 +27,7 @@ External access is centralized through a **Caddy reverse proxy**, which manages 
         ▼                        ▼
 ┌─────────────────┐     ┌─────────────────┐       ┌─────────────────┐
 │                 │     │                 │       │                 │
-│    Frontend     │     │    Backend      │       │   Datascience   │
+│    Frontend     │     │    Backend      │       │  Data Science   │
 │     (React)     │─────│ (Java / Spring) ┼───────│    (Python)     │
 │                 │     │                 │       │                 │
 └─────────────────┘     └───────┬─────────┘       └─────────────────┘

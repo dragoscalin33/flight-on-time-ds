@@ -77,7 +77,7 @@ The service exposes a `POST` endpoint that validates the presence of all require
     "distancia": 350.0,
     "chuva": 0.0,
     "vento": 5.2,
-    "fonte_clima": "LIVE (OpenMeteo)"
+    "fonte_clima": "LIVE (Open-Meteo)"
   }
 }
 ```
@@ -106,7 +106,7 @@ The service exposes a `POST` endpoint that validates the presence of all require
     "distancia": 2689.0,
     "chuva": 12.5,
     "vento": 18.3,
-    "fonte_clima": "LIVE (OpenMeteo)"
+    "fonte_clima": "LIVE (Open-Meteo)"
   }
 }
 ```
