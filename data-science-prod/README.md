@@ -9,7 +9,7 @@ An AI engine for predicting flight delays in Brazilian commercial aviation. Vers
 ## Pipeline Overview
 
 <p align="center">
-  <a href="https://htmlpreview.github.io/?https://github.com/rrbotlab/flight-on-time/blob/main/data-science-prod/docs/pipeline_overview.html">
+  <a href="https://htmlpreview.github.io/?https://github.com/dragoscalin33/flight-on-time-ds/blob/main/data-science-prod/docs/pipeline_overview.html">
     <img src="https://img.shields.io/badge/%F0%9F%94%8D_View_Interactive-Pipeline_Diagram-blueviolet?style=for-the-badge" alt="View Pipeline Diagram">
   </a>
 </p>
