@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flight on Time Pipeline: Before vs After</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 1rem;
+    margin-bottom: 48px;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: start;
+  }
+
+  .column-header {
+    text-align: center;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+  }
+  .old-header {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    border: 1px solid #dc2626;
+  }
+  .new-header {
+    background: linear-gradient(135deg, #14532d, #166534);
+    border: 1px solid #22c55e;
+  }
+
+  .step {
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+  .step:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .step-number {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 28px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-right: 8px;
+  }
+  .step-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline;
+  }
+  .step-desc {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    line-height: 1.5;
+    padding-left: 36px;
+  }
+
+  .old .step {
+    background: #1e1b2e;
+    border: 1px solid #3b3556;
+  }
+  .old .step-number {
+    background: #dc2626;
+    color: white;
+  }
+
+  .new .step {
+    background: #0f1f2e;
+    border: 1px solid #1e3a4f;
+  }
+  .new .step-number {
+    background: #22c55e;
+    color: #0f172a;
+  }
+
+  .badge-new {
+    display: inline-block;
+    background: #22c55e;
+    color: #0f172a;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+  }
+  .badge-blue {
+    display: inline-block;
+    background: #38bdf8;
+    color: #0f172a;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+  }
+
+  .arrow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 80px;
+  }
+  .arrow-icon {
+    font-size: 2rem;
+    color: #38bdf8;
+    margin: 8px 0;
+  }
+
+  /* ── Semaphore section ──────────────────────────── */
+  .semaphore-section {
+    margin-top: 48px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+  .semaphore-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: #38bdf8;
+  }
+  .semaphore-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .semaphore-card {
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .semaphore-card.green {
+    background: #14532d;
+    border: 2px solid #22c55e;
+  }
+  .semaphore-card.yellow {
+    background: #422006;
+    border: 2px solid #f59e0b;
+  }
+  .semaphore-card.red {
+    background: #450a0a;
+    border: 2px solid #ef4444;
+  }
+  .semaphore-icon { font-size: 2.5rem; margin-bottom: 8px; }
+  .semaphore-label { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+  .semaphore-range { font-size: 0.82rem; color: #94a3b8; margin-bottom: 8px; }
+  .semaphore-action { font-size: 0.82rem; color: #cbd5e1; }
+
+  /* ── Stack section ──────────────────────────────── */
+  .stack-section {
+    margin-top: 40px;
+    background: linear-gradient(135deg, #1e1b4b, #172554);
+    border: 1px solid #3730a3;
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+  .stack-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    color: #a5b4fc;
+  }
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .stack-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #312e81;
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+  .stack-icon { font-size: 1.4rem; }
+  .stack-name { font-weight: 600; font-size: 0.9rem; color: #e0e7ff; }
+  .stack-role { font-size: 0.78rem; color: #a5b4fc; }
+
+  /* ── Key metrics ────────────────────────────────── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+  .metric-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .metric-card .label { color: #94a3b8; font-size: 0.82rem; margin-bottom: 6px; }
+  .metric-card .value { font-size: 1.8rem; font-weight: 700; }
+  .metric-card .value.green { color: #22c55e; }
+  .metric-card .value.blue { color: #60a5fa; }
+  .metric-card .value.orange { color: #f97316; }
+  .metric-card .value.purple { color: #a78bfa; }
+  .metric-card .detail { color: #64748b; font-size: 0.72rem; margin-top: 4px; }
+
+  .legend {
+    margin-top: 40px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Flight on Time</h1>
+  <p class="subtitle">From Research Notebook (v5.0) to Production Pipeline (v6.0) &mdash; Brazilian Flight Delay Prediction</p>
+
+  <!-- ── Side by Side ─────────────────────────────── -->
+  <div class="comparison">
+
+    <!-- OLD PIPELINE -->
+    <div class="old">
+      <div class="column-header old-header">Before: Notebook v5.0</div>
+
+      <div class="step">
+        <span class="step-number">1</span>
+        <span class="step-title">Single Notebook</span>
+        <div class="step-desc">One massive <code>.ipynb</code> file (~2000 lines). Data loading, cleaning, feature engineering, training, evaluation — all in one linear flow.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">2</span>
+        <span class="step-title">Hardcoded Everything</span>
+        <div class="step-desc">File paths, hyperparameters, thresholds, outlier rules — all scattered across cells as magic numbers. Change one thing = hunt through the whole notebook.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">3</span>
+        <span class="step-title">Load & Clean</span>
+        <div class="step-desc">Load 2.5M flight records. Drop duplicates, filter completed flights, parse datetimes, compute delay_minutes. Rules are inline — outlier thresholds (-60 to 1440 min) are magic numbers in cells.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">4</span>
+        <span class="step-title">Feature Engineering</span>
+        <div class="step-desc">Haversine distance, hour/day/month extraction, weather merge. Good features, but mixed with EDA plots and hard to reuse or modify independently.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">5</span>
+        <span class="step-title">Train CatBoost</span>
+        <div class="step-desc">Single 80/20 split. Manual hyperparameter tuning (depth, iterations, learning_rate by trial and error). No cross-validation — one "lucky" split can give misleading results.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">6</span>
+        <span class="step-title">Evaluate & Export</span>
+        <div class="step-desc">Print metrics to stdout (lost when notebook closes). Save model as .joblib. No version tracking — overwrite the file and lose the previous model forever.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">7</span>
+        <span class="step-title">No Serving</span>
+        <div class="step-desc">Notebook produces a .joblib file. The backend loads it manually. No API contract, no health checks, no batch predictions.</div>
+      </div>
+    </div>
+
+    <!-- ARROW -->
+    <div class="arrow-col">
+      <div class="arrow-icon">&#10132;</div>
+    </div>
+
+    <!-- NEW PIPELINE -->
+    <div class="new">
+      <div class="column-header new-header">After: Production v6.0</div>
+
+      <div class="step">
+        <span class="step-number">1</span>
+        <span class="step-title">Configuration</span>
+        <span class="badge-new">HYDRA</span>
+        <div class="step-desc">All settings in YAML: model params, data paths, outlier rules, feature lists, thresholds. Change anything from CLI: <code>python -m src.models.train model.depth=8</code></div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">2</span>
+        <span class="step-title">Load & Clean (9 steps)</span>
+        <div class="step-desc">
+          Drop duplicates &rarr; Remove leakage columns (visibility, justification codes) &rarr; Filter completed flights only &rarr; Coerce coordinates &amp; weather to numeric &rarr; Parse 4 datetime columns &rarr; Drop rows missing scheduled/actual departure &rarr; Compute <code>delay_minutes</code> &amp; <code>duration_minutes</code> &rarr; Remove outliers (delay &gt; 24h or negative duration) &rarr; Build binary target (delay &gt; 15 min).
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">3</span>
+        <span class="step-title">Feature Engineering</span>
+        <span class="badge-blue">12+ FEATURES</span>
+        <div class="step-desc">
+          <strong>Geo:</strong> Haversine distance (km) from origin/dest coordinates<br>
+          <strong>Temporal:</strong> departure hour, day of week, month<br>
+          <strong>Calendar:</strong> Brazilian holiday flag (holidays lib)<br>
+          <strong>Weather:</strong> precipitation (mm), wind speed (km/h)<br>
+          <strong>Categorical:</strong> airline, origin airport, destination airport
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">4</span>
+        <span class="step-title">Schema Validation</span>
+        <span class="badge-new">PANDERA</span>
+        <div class="step-desc">Checks every column: correct dtype, value ranges (e.g. hour 0-23, month 1-12), no unexpected nulls. Catches bad data <em>before</em> training instead of mysterious failures later.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">5</span>
+        <span class="step-title">Stratified Split</span>
+        <div class="step-desc">80/20 train/test split preserving class balance (~30% delayed). Seed-controlled (42) for full reproducibility across runs.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">6</span>
+        <span class="step-title">Cross-Validation</span>
+        <span class="badge-new">5-FOLD CV</span>
+        <div class="step-desc">Stratified K-Fold on training set. Reports mean &plusmn; std for Recall, Precision, F1, F2, ROC-AUC per fold. Proves the model generalizes — not just one lucky split.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">7</span>
+        <span class="step-title">Train CatBoost</span>
+        <span class="badge-blue">NATIVE CAT</span>
+        <div class="step-desc">CatBoost with native categorical support (no OneHotEncoder needed for airline/airport). <code>auto_class_weights='Balanced'</code> handles the 70/30 imbalance. 500 iterations, depth 6, learning rate 0.1.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">8</span>
+        <span class="step-title">Threshold Optimization</span>
+        <span class="badge-new">SAFETY-FIRST</span>
+        <div class="step-desc">F2-score sweep (0.20 &rarr; 0.80, 200 steps) finds mathematical optimum at <strong>0.43</strong>. Business overrides to <strong>0.35</strong> — catches 90.8% of real delays. "Better to alert a passenger unnecessarily than let them miss a connection."</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">9</span>
+        <span class="step-title">Evaluation & Artifacts</span>
+        <div class="step-desc">Confusion matrix, top-15 feature importance, threshold sensitivity curve. All saved as PNG + logged to MLflow for comparison across runs.</div>
+      </div>
+
+      <div class="step">
+        <span class="step-number">10</span>
+        <span class="step-title">Export & Registry</span>
+        <span class="badge-new">MLFLOW</span>
+        <div class="step-desc">Retrain on all data. Register in MLflow Model Registry with version tracking. Every run is logged, comparable, and reproducible.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Risk Semaphore ───────────────────────────── -->
+  <div class="semaphore-section">
+    <h2>Risk Semaphore System</h2>
+    <p style="color: #94a3b8; font-size: 0.88rem; margin-bottom: 20px; text-align: center;">
+      The API returns a color-coded risk level for each flight prediction
+    </p>
+    <div class="semaphore-row">
+      <div class="semaphore-card green">
+        <div class="semaphore-icon">&#9989;</div>
+        <div class="semaphore-label">ON TIME</div>
+        <div class="semaphore-range">Probability &lt; 35%</div>
+        <div class="semaphore-action">No action needed</div>
+      </div>
+      <div class="semaphore-card yellow">
+        <div class="semaphore-icon">&#9888;&#65039;</div>
+        <div class="semaphore-label">PREVENTIVE ALERT</div>
+        <div class="semaphore-range">35% &ndash; 70%</div>
+        <div class="semaphore-action">Monitor &amp; prepare contingency</div>
+      </div>
+      <div class="semaphore-card red">
+        <div class="semaphore-icon">&#128680;</div>
+        <div class="semaphore-label">LIKELY DELAYED</div>
+        <div class="semaphore-range">Probability &gt; 70%</div>
+        <div class="semaphore-action">Activate delay protocol</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Full Stack ───────────────────────────────── -->
+  <div class="stack-section">
+    <h2>Full-Stack Architecture</h2>
+    <div class="stack-grid">
+      <div class="stack-item">
+        <span class="stack-icon">&#9881;&#65039;</span>
+        <div>
+          <div class="stack-name">Java 21 + Spring Boot</div>
+          <div class="stack-role">Backend API &amp; business logic</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#9889;</span>
+        <div>
+          <div class="stack-name">React + Vite + Tailwind</div>
+          <div class="stack-role">Frontend dashboard</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#129302;</span>
+        <div>
+          <div class="stack-name">CatBoost + Hydra + MLflow</div>
+          <div class="stack-role">ML engine (v6.0)</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#127777;&#65039;</span>
+        <div>
+          <div class="stack-name">Open-Meteo API</div>
+          <div class="stack-role">Real-time weather forecasts</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#128451;&#65039;</span>
+        <div>
+          <div class="stack-name">MySQL + Docker</div>
+          <div class="stack-role">Database &amp; containerization</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#9729;&#65039;</span>
+        <div>
+          <div class="stack-name">Oracle Cloud (OCI)</div>
+          <div class="stack-role">Infrastructure &amp; deployment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Key Metrics ──────────────────────────────── -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="label">Holdout Recall</div>
+      <div class="value green">90.8%</div>
+      <div class="detail">9 of 10 delays caught</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Safety Threshold</div>
+      <div class="value orange">0.35</div>
+      <div class="detail">Business override (F2 optimal: 0.43)</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Dataset</div>
+      <div class="value blue">2.5M</div>
+      <div class="detail">Brazilian flights 2015-2017</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Full Stack</div>
+      <div class="value purple">4</div>
+      <div class="detail">React + Spring Boot + CatBoost + OCI</div>
+    </div>
+  </div>
+
+  <p class="legend">Flight on Time &mdash; Brazilian Flight Delay Prediction &mdash; Production Pipeline v6.0</p>
+</div>
+</body>
+</html>

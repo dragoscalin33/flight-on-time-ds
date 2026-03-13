@@ -6,6 +6,16 @@ An AI engine for predicting flight delays in Brazilian commercial aviation. Vers
 
 ---
 
+## Pipeline Overview
+
+<p align="center">
+  <a href="https://htmlpreview.github.io/?https://github.com/rrbotlab/flight-on-time/blob/main/data-science-prod/docs/pipeline_overview.html">
+    <img src="https://img.shields.io/badge/%F0%9F%94%8D_View_Interactive-Pipeline_Diagram-blueviolet?style=for-the-badge" alt="View Pipeline Diagram">
+  </a>
+</p>
+
+---
+
 ## Architectural Evolution (v5.0 → v6.0)
 
 The original system (v5.0) was a single Jupyter notebook that handled everything — data loading, cleaning, feature engineering, model training, threshold tuning, and artifact serialization — in one linear flow. While effective for research and prototyping, this approach had critical limitations for production deployment:
