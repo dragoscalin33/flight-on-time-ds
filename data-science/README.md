@@ -1,156 +1,155 @@
-#  FlightOnTime - Motor de Inteligência Artificial
+# FlightOnTime — AI Engine (Research & Prototyping)
 
-> **Status:**  Em Produção (v5.0.0-LiveWeather) | **Recall de Segurança:** 90.8%
+> **Status:** Production (v5.0.0-LiveWeather) | **Safety Recall:** 90.8%
 
-Este repositório contém o **Core de Data Science** do projeto FlightOnTime. Nossa missão é prever atrasos em voos comerciais no Brasil utilizando Machine Learning avançado enriquecido com dados meteorológicos em tempo real, focando na segurança e planejamento do passageiro.
-
----
-
-##  A Evolução do Modelo (Do MVP ao Live-Weather)
-
-Nosso maior desafio foi lidar com o **desbalanceamento severo** dos dados (apenas 11% dos voos atrasam) e a complexidade de fatores externos.
-
-Evoluímos de um modelo puramente histórico para uma arquitetura autônoma que consulta APIs de clima em tempo real.
-
-| Versão | Modelo | Tecnologia | Recall (Detecção) | Status |
-|:-------|:-------|:-----------|:------------------|:-------|
-| v1.0 | Random Forest | Bagging Ensemble | 87.0% | Descontinuado |
-| v2.0 | XGBoost | Gradient Boosting | 87.2% | Testado |
-| v3.0 | CatBoost | Histórico Puro | 89.4% | Legacy (MVP) |
-| v4.0 | CatBoost + OpenMeteo | Weather-Aware Pipeline | 86.0% | Testado |
-| v4.1 | CatBoost Native | Weather-Aware + Native Features | 90.8% | Estável |
-| v4.2 | CatBoost + GeoMaps | Smart Distance Calculation | 90.7% | Estável |
-| **v5.0** | **CatBoost + Live API** | **Real-Time Weather Integration** | **90.7%** | **Em Produção** |
-| **vEXP** | **Deep Learning** | **Entity Embeddings + DNN** | **77.5%** | **Pesquiça Experimental** |
-
-*Nota: Com a implementação do CatBoost Native e integração Live, superamos a performance dos modelos anteriores, unindo precisão histórica com dados do mundo real.*
+This repository contains the **Data Science Core** of the FlightOnTime project. Our mission is to predict delays in Brazilian commercial flights using advanced Machine Learning enriched with real-time weather data, focusing on passenger safety and planning.
 
 ---
 
-##  Decisões Estratégicas de Negócio
+## Model Evolution (From MVP to Live-Weather)
 
-### 1. Otimização do Limiar de Decisão (Threshold)
+Our biggest challenge was handling the **severe class imbalance** (only 11% of flights are delayed) and the complexity of external factors.
 
-Realizamos uma análise matemática utilizando o **F2-Score** (que prioriza o Recall).
+We evolved from a purely historical model to an autonomous architecture that queries weather APIs in real-time.
 
-- **Sugestão do Algoritmo:** Corte em **0.43**.
-- **Decisão de Negócio (Override):** Fixamos o corte em **0.35**.
-- **Motivo:** Decidimos sacrificar precisão estatística para garantir a **Segurança**. Preferimos o risco de um "Falso Alerta Preventivo" do que deixar um passageiro perder o voo por não avisar sobre uma tempestade iminente.
+| Version | Model | Technology | Recall (Detection) | Status |
+|:--------|:------|:-----------|:-------------------|:-------|
+| v1.0 | Random Forest | Bagging Ensemble | 87.0% | Discontinued |
+| v2.0 | XGBoost | Gradient Boosting | 87.2% | Tested |
+| v3.0 | CatBoost | Pure Historical | 89.4% | Legacy (MVP) |
+| v4.0 | CatBoost + OpenMeteo | Weather-Aware Pipeline | 86.0% | Tested |
+| v4.1 | CatBoost Native | Weather-Aware + Native Features | 90.8% | Stable |
+| v4.2 | CatBoost + GeoMaps | Smart Distance Calculation | 90.7% | Stable |
+| **v5.0** | **CatBoost + Live API** | **Real-Time Weather Integration** | **90.7%** | **In Production** |
+| **vEXP** | **Deep Learning** | **Entity Embeddings + DNN** | **77.5%** | **Experimental Research** |
 
-### 2. Estratégia de Clima e Feriados (Pareto)
-
-- **Feriados:** Aplicamos o calendário `holidays.Brazil()` apenas na data de partida, cobrindo 94% dos picos de demanda.
-- **Clima:** O modelo consulta a API da **OpenMeteo** em tempo real. Condições adversas (chuva > 10mm, vento > 30km/h) aumentam drasticamente o risco calculado.
-
----
-
-##  Arquitetura e Engenharia de Features
-
-O modelo v5.0 é um sistema autônomo que cruza histórico com dados vivos:
-
-1. **Integração Meteorológica (NOVO):** Ingestão de dados de `precipitation` (mm) e `wind_speed` (km/h) para entender o impacto físico na aeronave.
-2. **Detector de Feriados:** Cruzamento em tempo real da data do voo com o calendário oficial.
-3. **Georreferenciamento:** Cálculo da distância geodésica (`distancia_km`) via Fórmula de Haversine.
-4. **CatBoost Native Support:** Tratamento nativo de categorias, aumentando a precisão em rotas complexas.
-5. **Smart Distance (v4.2):** O modelo "conhece" as coordenadas dos aeroportos e calcula a distância automaticamente.
-6. **Live Weather Integration (v5.0):** Conexão em tempo real com a API `OpenMeteo`. Se o usuário não fornecer dados climáticos, o sistema busca automaticamente a previsão do tempo para a hora e local do voo.
+*Note: With CatBoost Native implementation and Live integration, we surpassed previous models by combining historical precision with real-world data.*
 
 ---
 
-## Laboratório de Pesquisa: Deep Learning & Entity Embeddings
+## Strategic Business Decisions
 
-Como parte da nossa busca pela excelência e inovação, realizamos um experimento avançado explorando **Redes Neurais Profundas (Deep Learning)** como alternativa ao Gradient Boosting. O objetivo era entender se uma arquitetura baseada em **Entity Embeddings** poderia capturar padrões latentes entre aeroportos e rotas que escapam aos modelos de árvores.
+### 1. Decision Threshold Optimization
 
-### O Percurso do Experimento (Pipeline de Resgate)
+We performed a mathematical analysis using the **F2-Score** (which prioritizes Recall).
 
-Diferente do modelo CatBoost, que lida nativamente com categorias, o desenvolvimento da Rede Neural exigiu uma engenharia de dados complexa para evitar o colapso do modelo e problemas de hardware:
+- **Algorithm Suggestion:** Cutoff at **0.43**.
+- **Business Decision (Override):** We fixed the cutoff at **0.35**.
+- **Reason:** We chose to sacrifice statistical precision to ensure **Safety**. We prefer the risk of a "False Preventive Alert" over letting a passenger miss their flight due to an unannounced incoming storm.
 
-* **Abandono do One-Hot Encoding:** Inicialmente, testamos One-Hot para aeroportos e companhias. No entanto, a alta cardinalidade gerou vetores esparsos que consumiam toda a memória RAM disponível e diluíam o poder preditivo do modelo.
-* **Implementação de Entity Embeddings:** Substituímos o One-Hot por camadas de Embedding. Isso permitiu que o modelo aprendesse representações numéricas densas (embeddings) para cada aeroporto, "agrupando" logicamente terminais com comportamentos operacionais similares.
-* **Tratamento de Desbalanceamento Severo:**
-    * **Class Weights:** Em vez de técnicas de reamostragem, aplicamos pesos diferenciados na função de perda para forçar o modelo a dar maior importância aos atrasos (classe minoritária).
-    * **Binary Crossentropy Estável:** Após testar *Focal Loss*, estabilizamos o treinamento com *Binary Crossentropy* e um *Learning Rate* reduzido ($10^{-4}$) para evitar a explosão de gradientes.
-* **Otimização do Limiar (Threshold):** Em vez do padrão 0.5, utilizamos o **F2-Score** para encontrar o ponto ótimo de decisão em **0.425**, priorizando o **Recall** (segurança do passageiro) sobre a precisão.
+### 2. Weather & Holiday Strategy (Pareto)
 
-### Resultados Comparativos
+- **Holidays:** We apply the `holidays.Brazil()` calendar only to the departure date, covering 94% of demand peaks.
+- **Weather:** The model queries the **OpenMeteo** API in real-time. Adverse conditions (rain > 10mm, wind > 30km/h) drastically increase the calculated risk.
 
-| Métrica | CatBoost (Produção) | Deep Learning (Estável) |
-| :--- | :--- | :--- |
+---
+
+## Architecture & Feature Engineering
+
+The v5.0 model is an autonomous system that crosses historical data with live data:
+
+1. **Weather Integration (NEW):** Ingestion of `precipitation` (mm) and `wind_speed` (km/h) data to understand the physical impact on the aircraft.
+2. **Holiday Detector:** Real-time cross-referencing of the flight date with the official calendar.
+3. **Georeferencing:** Geodesic distance calculation (`distance_km`) via the Haversine Formula.
+4. **CatBoost Native Support:** Native category handling, increasing accuracy on complex routes.
+5. **Smart Distance (v4.2):** The model "knows" airport coordinates and calculates distance automatically.
+6. **Live Weather Integration (v5.0):** Real-time connection with the `OpenMeteo` API. If the user doesn't provide weather data, the system automatically fetches the weather forecast for the flight's time and location.
+
+---
+
+## Research Lab: Deep Learning & Entity Embeddings
+
+As part of our pursuit of excellence and innovation, we conducted an advanced experiment exploring **Deep Neural Networks (Deep Learning)** as an alternative to Gradient Boosting. The goal was to understand whether an **Entity Embeddings**-based architecture could capture latent patterns between airports and routes that escape tree-based models.
+
+### Experiment Journey (Rescue Pipeline)
+
+Unlike CatBoost, which natively handles categories, developing the Neural Network required complex data engineering to avoid model collapse and hardware issues:
+
+* **Abandoning One-Hot Encoding:** Initially, we tested One-Hot for airports and airlines. However, high cardinality generated sparse vectors that consumed all available RAM and diluted the model's predictive power.
+* **Implementing Entity Embeddings:** We replaced One-Hot with Embedding layers. This allowed the model to learn dense numerical representations (embeddings) for each airport, logically "grouping" terminals with similar operational behaviors.
+* **Severe Imbalance Treatment:**
+    * **Class Weights:** Instead of resampling techniques, we applied differential weights in the loss function to force the model to give greater importance to delays (minority class).
+    * **Stable Binary Crossentropy:** After testing *Focal Loss*, we stabilized training with *Binary Crossentropy* and a reduced *Learning Rate* (10⁻⁴) to prevent gradient explosion.
+* **Threshold Optimization:** Instead of the default 0.5, we used the **F2-Score** to find the optimal decision point at **0.425**, prioritizing **Recall** (passenger safety) over precision.
+
+### Comparative Results
+
+| Metric | CatBoost (Production) | Deep Learning (Stable) |
+|:-------|:---------------------|:----------------------|
 | **ROC-AUC** | **0.794** | 0.697 |
-| **Recall (Detecção)** | **90.8%** | 77.5% |
-| **Acurácia** | **73.1%** | 50.5% |
+| **Recall (Detection)** | **90.8%** | 77.5% |
+| **Accuracy** | **73.1%** | 50.5% |
 | **F1-Score** | **0.725** | 0.267 |
 
-### Diagnóstico e Decisão de Engenharia
+### Diagnosis & Engineering Decision
 
-Após uma análise rigorosa, decidimos **manter o CatBoost em produção**. Os principais fundamentos foram:
+After rigorous analysis, we decided to **keep CatBoost in production**. The main reasons were:
 
-1.  **Eficiência em Dados Tabulares:** Modelos de *Gradient Boosting* demonstraram ser superiores para este dataset estruturado com 11 variáveis. Redes Neurais geralmente exigem uma dimensionalidade maior de *features* para superar modelos de árvores.
-2.  **Relação Precisão/Recall:** O modelo DL, embora tenha atingido um Recall sólido (77%), apresentou uma taxa de falsos positivos significativamente maior que o CatBoost, o que poderia comprometer a experiência do usuário com alertas desnecessários.
-3.  **Complexidade Operacional:** O custo computacional e a manutenção de uma arquitetura de Deep Learning não justificaram o desempenho inferior em comparação com a solução nativa do CatBoost.
+1. **Efficiency on Tabular Data:** Gradient Boosting models proved superior for this structured dataset with 11 features. Neural Networks generally require higher feature dimensionality to outperform tree models.
+2. **Precision/Recall Tradeoff:** The DL model, while achieving solid Recall (77%), presented a significantly higher false positive rate than CatBoost, which could compromise user experience with unnecessary alerts.
+3. **Operational Complexity:** The computational cost and maintenance of a Deep Learning architecture did not justify the inferior performance compared to CatBoost's native solution.
 
-> **Nota de Portfólio:** Este experimento demonstra a nossa capacidade de debugging e a nossa disciplina em seguir uma abordagem científica: testar hipóteses complexas, mas escolher a ferramenta mais eficaz para o problema real de negócio. O notebook está preservado na pasta notebooks.
+> **Portfolio Note:** This experiment demonstrates our debugging capability and our discipline in following a scientific approach: testing complex hypotheses, but choosing the most effective tool for the real business problem. The notebook is preserved in the notebooks folder.
 
 ---
 
-### Stack Tecnológico
+### Tech Stack
 
-- **Linguagem:** Python 3.10+
+- **Language:** Python 3.10+
 - **ML Core:** CatBoost (Gradient Boosting)
-- **External Data:** Open-Meteo API (Dados Climáticos)
+- **External Data:** Open-Meteo API (Weather Data)
 - **API:** FastAPI + Uvicorn
-- **Dependência:** Biblioteca `requests` para chamadas HTTP.
-- **Deploy:** Docker / Oracle Cloud Infrastructure (OCI)
+- **Dependencies:** `requests` library for HTTP calls
+- **Deployment:** Docker / Oracle Cloud Infrastructure (OCI)
 
 ---
 
-##  Regra de Negócio: O Semáforo de Risco
+## Business Rule: The Risk Semaphore
 
-Traduzimos a probabilidade matemática em uma experiência visual para o usuário:
+We translate the mathematical probability into a visual experience for the user:
 
-- 🟢 **PONTUAL (Risco < 35%):**
-  - Boas condições de voo e clima estável.
-- 🟡 **ALERTA PREVENTIVO (Risco 35% - 70%):**
-  - O modelo detectou instabilidade (ex: chuva leve ou aeroporto congestionado). Monitore o painel.
-- 🔴 **ATRASO PROVÁVEL (Risco > 70%):**
-  - Condições críticas detectadas (ex: Tempestade + Feriado). Alta chance de problemas.
+| Risk Level | Probability | Description |
+|:-----------|:------------|:------------|
+| ON_TIME (green) | < 35% | Good flight conditions and stable weather |
+| PREVENTIVE_ALERT (yellow) | 35% – 70% | Model detected instability (e.g., light rain or congested airport). Monitor the dashboard |
+| LIKELY_DELAYED (red) | > 70% | Critical conditions detected (e.g., Storm + Holiday). High chance of problems |
 
 ---
 
-##  Instalação e Execução
+## Installation & Running
 
-### 1. Preparar o Ambiente
+### 1. Set Up the Environment
 ```bash
 python -m venv venv
-source venv/bin/activate  # ou venv\Scripts\activate no Windows
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 ```
 
-### 2. Treinar o Modelo v5.0 (Opcional)
+### 2. Train Model v5.0 (Optional)
 
-O repositório já inclui o arquivo `flight_classifier_v4.joblib` atualizado com o mapa de coordenadas. Para retreinar:
+The repository already includes the updated `flight_classifier_v4.joblib` file with the coordinates map. To retrain:
 ```bash
 python data-science/src/train.py
 ```
 
-### 3. Subir a API
+### 3. Start the API
 
-Inicie o servidor de predição localmente (a partir da raiz do projeto):
+Start the prediction server locally (from the project root):
 ```bash
 python -m uvicorn data-science.src.app:app --reload
 ```
 
-Acesse a documentação automática em: http://127.0.0.1:8000/docs
+Access the automatic documentation at: http://127.0.0.1:8000/docs
 
 ---
 
-##  Documentação da API
+## API Documentation
 
-A API aceita dados do voo e busca automaticamente o clima se necessário.
+The API accepts flight data and automatically fetches weather if needed.
 
 **Endpoint:** `POST /predict`
 
-**Payload de Entrada (Minimalista - v5.0):** Agora o sistema é autônomo. Basta informar o voo e a data.
+**Input Payload (Minimalist - v5.0):** The system is now autonomous. Just provide the flight and date.
 ```json
 {
   "companhia": "GOL",
@@ -160,48 +159,65 @@ A API aceita dados do voo e busca automaticamente o clima se necessário.
 }
 ```
 
-*Nota: `distancia_km`, `precipitation` e `wind_speed` são opcionais. Se omitidos, a API calcula a distância geodésica e busca o clima em tempo real via OpenMeteo.*
+*Note: `distancia_km`, `precipitation`, and `wind_speed` are optional. If omitted, the API calculates the geodesic distance and fetches weather in real-time via OpenMeteo.*
 
-**Resposta da API (Exemplo com Clima Automático):**
+**API Response (Example with Automatic Weather):**
 ```json
 {
-  "previsao": "🟡 ALERTA",
+  "previsao": "PREVENTIVE_ALERT",
   "probabilidade": 0.654,
   "cor": "yellow",
   "dados_utilizados": {
     "distancia": 366.0,
     "chuva": 5.2,
     "vento": 12.0,
-    "fonte_clima": "✅ LIVE (OpenMeteo)"
+    "fonte_clima": "LIVE (OpenMeteo)"
   }
 }
 ```
 
 ---
 
-##  Roadmap Estratégico (Fase 3)
+## Strategic Roadmap (Phase 3)
 
-Com a entrega da v5.0 (Live Weather), o sistema está completo em termos de previsão física. O próximo passo é o tráfego aéreo.
+With the delivery of v5.0 (Live Weather), the system is complete in terms of physical prediction. The next step is air traffic.
 
-### 1. Monitoramento de Malha Aérea (Efeito Dominó)
+### 1. Air Network Monitoring (Domino Effect)
 
-**O Desafio:** Atrasos na aviação funcionam em cascata. Um atraso em Brasília afeta Guarulhos horas depois.
+**The Challenge:** Aviation delays work in cascades. A delay in Brasilia affects Guarulhos hours later.
 
-**A Solução:** Integrar com APIs de tráfego (FlightRadar24) para calcular o "atraso médio do aeroporto" nos últimos 60 minutos.
+**The Solution:** Integrate with traffic APIs (FlightRadar24) to calculate the "average airport delay" in the last 60 minutes.
 
-**Novas Features Planejadas:**
+**Planned New Features:**
 
-- `fila_decolagem_atual`: Quantidade de aeronaves aguardando pista.
-- `indice_atraso_aeroporto`: Média de atraso atual do hub.
+- `takeoff_queue_current`: Number of aircraft waiting for the runway.
+- `airport_delay_index`: Current average delay at the hub.
 
 ---
 
-##  Dataset
+## Dataset
 
-**Fonte Oficial:** Flights in Brazil (2015-2017) - Kaggle  
-**Dados Climáticos:** Enriquecimento realizado via Open-Meteo Historical API.
+**Official Source:** Flights in Brazil (2015-2017) — Kaggle
+**Weather Data:** Enrichment via Open-Meteo Historical API.
 
-**Como usar:**
+**How to use:**
 
-1. Execute o Notebook `1_data_engineering_weather.ipynb` em `data-science/notebooks/` para gerar o dataset.
-2. Execute o Notebook `2_modeling_strategy_v4.ipynb` para análise exploratória.
+1. Run Notebook `1_data_engineering_weather.ipynb` in `data-science/notebooks/` to generate the dataset.
+2. Run Notebook `2_modeling_strategy_v4.ipynb` for exploratory analysis.
+
+---
+
+<details>
+<summary><strong>Versao em Portugues / Portuguese Version</strong></summary>
+
+Este repositorio contem o **Core de Data Science** do projeto FlightOnTime. Nossa missao e prever atrasos em voos comerciais no Brasil utilizando Machine Learning avancado enriquecido com dados meteorologicos em tempo real.
+
+**Evolucao:** Do Random Forest (v1.0) ao CatBoost com integracao Live Weather (v5.0), alcancando 90.8% de Recall. Tambem experimentamos Deep Learning com Entity Embeddings (vEXP), mas o CatBoost manteve superioridade de ~10% no ROC-AUC.
+
+**Decisoes de Negocio:** Limiar de decisao fixado em 0.35 (override do F2-optimal 0.43) para priorizar seguranca. Semaforo de risco: PONTUAL (< 35%), ALERTA PREVENTIVO (35-70%), ATRASO PROVAVEL (> 70%).
+
+**Stack:** Python 3.10+, CatBoost, Open-Meteo API, FastAPI, Uvicorn, Docker/OCI.
+
+Para detalhes completos, consulte a versao em ingles acima.
+
+</details>

@@ -1,16 +1,15 @@
+# Flight On Time — Deployment on Oracle Cloud Infrastructure (OCI)
 
-# Flight On Time – Deployment na Oracle Cloud Infrastructure (OCI)
+This repository documents the architecture and implementation of the **Flight On Time** project deployed on **Oracle Cloud Infrastructure (OCI)**, using **Docker containers** to isolate and orchestrate the application services.
 
-Este repositório documenta a arquitetura e a implementação do projeto **Flight On Time** implantado na **Oracle Cloud Infrastructure (OCI)**, utilizando **containers Docker** para isolar e orquestrar os serviços da aplicação.
-
-A solução foi desenhada para ser **modular, escalável e facilmente reproduzível**, seguindo boas práticas de infraestrutura e DevOps.
+The solution is designed to be **modular, scalable, and easily reproducible**, following infrastructure and DevOps best practices.
 
 ---
 
-## 📐 Visão Geral da Arquitetura
+## Architecture Overview
 
-Todos os componentes da aplicação são executados em **containers Docker**, hospedados em uma **VM na OCI**.  
-O acesso externo é centralizado por um **proxy reverso Caddy**, que gerencia o roteamento e, opcionalmente, certificados TLS.
+All application components run in **Docker containers**, hosted on a **VM on OCI**.
+External access is centralized through a **Caddy reverse proxy**, which manages routing and, optionally, TLS certificates.
 
 ```
                          ┌───────────────┐
@@ -20,12 +19,12 @@ O acesso externo é centralizado por um **proxy reverso Caddy**, que gerencia o 
                                  ▼
                         ┌─────────────────┐
                         │     Caddy       │
-                        │  Proxy Reverso  │
+                        │  Reverse Proxy  │
                         └────────┬────────┘
                                  │
         ┌────────────────────────┼
         │                        │
-        ▼                        ▼                         
+        ▼                        ▼
 ┌─────────────────┐     ┌─────────────────┐       ┌─────────────────┐
 │                 │     │                 │       │                 │
 │    Frontend     │     │    Backend      │       │   Datascience   │
@@ -36,130 +35,139 @@ O acesso externo é centralizado por um **proxy reverso Caddy**, que gerencia o 
                                 ▼
                        ┌──────────────────┐
                        │      MySQL       │
-                       │  Banco de Dados  │
+                       │    Database      │
                        └──────────────────┘
-
-
 ```
 
+---
+
+## Solution Components
+
+### Caddy (Reverse Proxy)
+- Runs in a Docker container
+- Acts as the single entry point for the application
+- Responsible for:
+    - HTTP/HTTPS routing
+    - Reverse proxy to internal services
+    - Automatic TLS certificate management
+- Enables service exposure without direct coupling to containers
 
 ---
 
-## 🧱 Componentes da Solução
-
-### 🔹 Caddy (Proxy Reverso)
-- Executa em container Docker
-- Atua como ponto único de entrada da aplicação
-- Responsável por:
-    - Roteamento HTTP/HTTPS
-    - Proxy reverso para os serviços internos
-    - Gerenciamento automático de TLS
-- Facilita a exposição dos serviços sem acoplamento direto aos containers
-
----
-
-### 🔹 Frontend (React)
-- Aplicação frontend desenvolvida em **React**
-- Executa em container Docker
-- Build gerado em ambiente controlado (`npm run build`)
-- Servido via:
-    - Caddy secundário (outro container)  
-- Responsável por:
-    - Interface do usuário
-    - Consumo das APIs expostas pelo Backend Java
-- Não acessa diretamente banco de dados ou serviços internos
+### Frontend (React)
+- Frontend application built with **React**
+- Runs in a Docker container
+- Build generated in a controlled environment (`npm run build`)
+- Served via a secondary Caddy container
+- Responsible for:
+    - User interface
+    - Consuming APIs exposed by the Java Backend
+- Does not directly access databases or internal services
 
 ---
 
-### 🔹 Backend (Java)
-- Aplicação Java (Spring Boot)
-- Executa em container Docker baseado em **Temurin**
-- Responsável por:
-    - Exposição das APIs REST
-    - Regras de negócio
-    - Integração com o banco de dados MySQL
-    - Comunicação com o serviço de Data Science
-- Build realizado via **Maven** 
+### Backend (Java)
+- Java application (Spring Boot)
+- Runs in a Docker container based on **Temurin**
+- Responsible for:
+    - REST API exposure
+    - Business rules
+    - MySQL database integration
+    - Communication with the Data Science service
+- Build via **Maven**
 
 ---
 
-### 🔹 Datascience (Python)
-- Serviço Python executando em container Docker
-- Responsável por:
-    - Carga e execução de modelos preditivos
-    - Processamento de dados
-    - Exposição de endpoints (FastAPI)
-- Consumido pelo backend Java via HTTP
-- Totalmente desacoplado do backend, permitindo evolução independente
+### Data Science (Python)
+- Python service running in a Docker container
+- Responsible for:
+    - Loading and executing predictive models
+    - Data processing
+    - Endpoint exposure (FastAPI)
+- Consumed by the Java backend via HTTP
+- Fully decoupled from the backend, allowing independent evolution
 
 ---
 
-### 🔹 MySQL
-- Banco de dados relacional executando em container Docker
-- Responsável pelo armazenamento de:
-    - Dados operacionais
-    - Dados históricos utilizados pelo modelo
-- Persistência garantida via **volumes Docker**
-- Não exposto diretamente à internet (acesso apenas interno)
+### MySQL
+- Relational database running in a Docker container
+- Responsible for storing:
+    - Operational data
+    - Historical data used by the model
+- Persistence ensured via **Docker volumes**
+- Not directly exposed to the internet (internal access only)
 
 ---
 
-## ☁️ Infraestrutura na OCI
+## OCI Infrastructure
 
 - **Oracle Cloud Infrastructure (OCI)**
-- **Compute Instance (VM Linux)**
-- Docker e Docker Compose instalados na VM
-- Containers executados na mesma instância
-- Comunicação entre serviços via **rede Docker interna**
-- Firewall da OCI permitindo acesso apenas às portas necessárias (ex: 80/443)
+- **Compute Instance (Linux VM)**
+- Docker and Docker Compose installed on the VM
+- Containers running on the same instance
+- Inter-service communication via **internal Docker network**
+- OCI firewall allowing access only to necessary ports (e.g., 80/443)
 
 ---
 
-## 🐳 Containers e Orquestração
+## Containers & Orchestration
 
-- Todos os serviços são definidos via **Docker Compose**
-- Benefícios:
-    - Padronização do ambiente
-    - Facilidade de deploy e rollback
-    - Isolamento entre serviços
-    - Reprodutibilidade local e em produção
-
----
-
-## 🔄 Fluxo de Comunicação
-
-1. Usuário acessa a aplicação via navegador
-2. Requisição chega ao **Caddy**
-3. Caddy:
-    - Serve o **Frontend React** 
-4. Frontend consome APIs do **Backend Java**
-5. Backend acessa:
-    - MySQL para dados persistentes
-    - Datascience para inferência de modelos
-6. Resposta retorna ao usuário via Caddy
+- All services are defined via **Docker Compose**
+- Benefits:
+    - Environment standardization
+    - Easy deploy and rollback
+    - Service isolation
+    - Local and production reproducibility
 
 ---
 
-## ✅ Benefícios da Arquitetura
+## Communication Flow
 
-- Separação clara de responsabilidades
-- Frontend desacoplado do backend
-- Fácil manutenção e evolução dos serviços
-- Possibilidade de escalar componentes individualmente
-- Infraestrutura simples e de baixo custo na OCI
-- Aderência a práticas modernas de cloud e containers
-
----
-
-## 📌 Observações
-
-- Nenhum serviço interno (MySQL, Datascience) é exposto diretamente
-- Toda a comunicação externa passa pelo **Caddy**
-- A arquitetura permite futura migração para Kubernetes sem grandes refatorações
+1. User accesses the application via browser
+2. Request reaches **Caddy**
+3. Caddy serves the **React Frontend**
+4. Frontend consumes **Java Backend** APIs
+5. Backend accesses:
+    - MySQL for persistent data
+    - Data Science for model inference
+6. Response returns to the user via Caddy
 
 ---
 
-## 📄 Licença
+## Architecture Benefits
 
-Este projeto é de uso educacional. Desenvolvido para o Hackathon NoCountry em parceria com Alura/Oracle ONE
+- Clear separation of responsibilities
+- Frontend decoupled from backend
+- Easy maintenance and service evolution
+- Ability to scale components individually
+- Simple and low-cost infrastructure on OCI
+- Adherence to modern cloud and container practices
 
+---
+
+## Notes
+
+- No internal service (MySQL, Data Science) is directly exposed
+- All external communication goes through **Caddy**
+- The architecture allows future migration to Kubernetes without major refactoring
+
+---
+
+## License
+
+This project is for educational use. Developed for the NoCountry Hackathon in partnership with Alura/Oracle ONE.
+
+---
+
+<details>
+<summary><strong>Versao em Portugues / Portuguese Version</strong></summary>
+
+Este repositorio documenta a arquitetura e implementacao do projeto **Flight On Time** implantado na **Oracle Cloud Infrastructure (OCI)**, utilizando containers Docker para isolar e orquestrar os servicos.
+
+**Arquitetura:** Todos os componentes rodam em containers Docker numa VM OCI, com Caddy como proxy reverso. Frontend (React), Backend (Java/Spring Boot), Data Science (Python/FastAPI) e MySQL, orquestrados via Docker Compose.
+
+**Fluxo:** Usuario → Caddy → Frontend/Backend → MySQL + Data Science → Resposta.
+
+Para detalhes completos da arquitetura e componentes, consulte a versao em ingles acima.
+
+</details>

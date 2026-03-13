@@ -1,64 +1,61 @@
 # Flight On Time API
 
-A Flight on Time é uma aplicação Back-End (REST) desenvolvida em Java com o framework Spring Boot. O objetivo principal
-é fornecer previsões sobre o status de voos (atrasado ou pontual) utilizando o modelo de Data Science integrado via
-microserviço.
+The Flight On Time API is a Back-End (REST) application built with Java and the Spring Boot framework. Its main goal is to provide predictions about flight status (delayed or on-time) using the integrated Data Science model via microservice.
 
-## Processo de Previsão (Dados -> Modelo -> Previsão)
+## Prediction Flow (Data → Model → Prediction)
 
-O fluxo da aplicação segue três etapas principais:
+The application follows three main stages:
 
-1. **Entrada de Dados**: A API Java recebe via JSON os detalhes do voo (companhia, aeroportos e data de partida).
-2. **Integração DS:** O serviço (`FlightPredictionService`) comunica-se via `RestClient` com o microserviço de Data Science.
-3. **Resposta:** A API padroniza o retorno com a previsão, a probabilidade decimal, a cor do semáforo de risco e os detalhes utilizados.
+1. **Data Input**: The Java API receives flight details via JSON (airline, airports, and departure date).
+2. **DS Integration**: The service (`FlightPredictionService`) communicates via `RestClient` with the Data Science microservice.
+3. **Response**: The API standardizes the response with the prediction, decimal probability, risk semaphore color, and the details used.
 
-## Ferramentas e Dependências
+## Tools & Dependencies
 
-- **Linguagem:** Java 21
+- **Language:** Java 21
 - **Framework:** Spring Boot 3.5.4
-- **Banco de Dados**: MySQL com migrações via Flyway
-- **Documentação**: SpringDoc OpenAPI (Swagger)
-- **Resiliência**: Resilience4j (Circuit Breaker)
+- **Database:** MySQL with Flyway migrations
+- **Documentation:** SpringDoc OpenAPI (Swagger)
+- **Resilience:** Resilience4j (Circuit Breaker)
 
-## Como Executar o Projeto Localmente
+## Running Locally
 
-**Pré-requisitos**
+**Prerequisites**
 
-- Java 21 e Maven (ou use o `./mvnw` incluso)
-- MySQL rodando localmente
-- O microserviço de Data Science em execução
+- Java 21 and Maven (or use the included `./mvnw`)
+- MySQL running locally
+- The Data Science microservice running
 
-**Passos**
+**Steps**
 
-1. **Configurar o Banco de Dados**: Execute as migrações presentes em `src/main/resources/db/migration` para criar
-   as tabelas de usuários, perfis, aeroportos e companhias aéreas.
+1. **Configure the Database**: Run the migrations in `src/main/resources/db/migration` to create the users, profiles, airports, and airlines tables.
 
-2. **Configurar as variáveis de ambiente**: Defina as credenciais do banco e a URL dos serviços:
+2. **Set environment variables**: Define the database credentials and service URLs:
 
-| Variável | Descrição |
-|----------|-----------|
-| `FLIGHTONTIME_DATASOURCE_DEV` | URL do MySQL (ex: `jdbc:mysql://localhost:3306/flightontime`) |
-| `FLIGHTONTIME_USERNAME_DEV` | Usuário do banco de dados |
-| `FLIGHTONTIME_PASSWORD_DEV` | Senha do banco de dados |
-| `FLIGHTONTIME_DATASCIENCE_BASEURL` | URL do motor de IA (ex: `http://localhost:8000`) |
-| `FLIGHTONTIME_JWT_SECRET_DEV` | Secret para geração de tokens JWT |
-| `FLIGHTONTIME_PATH_DEV` | Context path da aplicação (opcional) |
+| Variable | Description |
+|----------|-------------|
+| `FLIGHTONTIME_DATASOURCE_DEV` | MySQL URL (e.g., `jdbc:mysql://localhost:3306/flightontime`) |
+| `FLIGHTONTIME_USERNAME_DEV` | Database username |
+| `FLIGHTONTIME_PASSWORD_DEV` | Database password |
+| `FLIGHTONTIME_DATASCIENCE_BASEURL` | AI engine URL (e.g., `http://localhost:8000`) |
+| `FLIGHTONTIME_JWT_SECRET_DEV` | Secret for JWT token generation |
+| `FLIGHTONTIME_PATH_DEV` | Application context path (optional) |
 
-3. **Executar a API**:
+3. **Run the API**:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-4. **Acesso:** A documentação interativa estará disponível em `/swagger-ui.html`.
+4. **Access:** Interactive documentation is available at `/swagger-ui.html`.
 
-## Exemplos de Uso (Endpoint `/predict`)
+## Usage Examples (Endpoint `/predict`)
 
-O serviço expõe um endpoint `POST` que valida a presença de todos os campos obrigatórios antes de processar a consulta.
+The service exposes a `POST` endpoint that validates the presence of all required fields before processing the query.
 
-### 1. Exemplo de Voo Pontual (Risco Baixo)
+### 1. On-Time Flight Example (Low Risk)
 
-**Requisição:**
+**Request:**
 
 ```json
 {
@@ -69,25 +66,25 @@ O serviço expõe um endpoint `POST` que valida a presença de todos os campos o
 }
 ```
 
-**Resposta (Probabilidade < 0.35):**
+**Response (Probability < 0.35):**
 
 ```json
 {
-  "previsao": "🟢 PONTUAL",
+  "previsao": "ON_TIME",
   "probabilidade": 0.15,
   "cor": "green",
   "detalhes": {
     "distancia": 350.0,
     "chuva": 0.0,
     "vento": 5.2,
-    "fonte_clima": "✅ LIVE (OpenMeteo)"
+    "fonte_clima": "LIVE (OpenMeteo)"
   }
 }
 ```
 
-### 2. Exemplo de Voo Atrasado (Risco Alto)
+### 2. Delayed Flight Example (High Risk)
 
-**Requisição (Feriado de Natal com mau tempo):**
+**Request (Christmas holiday with bad weather):**
 
 ```json
 {
@@ -98,33 +95,48 @@ O serviço expõe um endpoint `POST` que valida a presença de todos os campos o
 }
 ```
 
-**Resposta (Probabilidade > 0.70):**
+**Response (Probability > 0.70):**
 
 ```json
 {
-  "previsao": "🔴 ATRASO PROVÁVEL",
+  "previsao": "LIKELY_DELAYED",
   "probabilidade": 0.72,
   "cor": "red",
   "detalhes": {
     "distancia": 2689.0,
     "chuva": 12.5,
     "vento": 18.3,
-    "fonte_clima": "✅ LIVE (OpenMeteo)"
+    "fonte_clima": "LIVE (OpenMeteo)"
   }
 }
 ```
 
-### 3. Exemplo de Erro de Validação
+### 3. Validation Error Example
 
-Se um campo obrigatório como `data_partida` for omitido, a API retorna um erro padronizado:
+If a required field such as `data_partida` is omitted, the API returns a standardized error:
 
-**Resposta (400 Bad Request):**
+**Response (400 Bad Request):**
 
 ```json
 [
   {
     "campo": "data_partida",
-    "mensagem": "data_partida não deve ser nulo"
+    "mensagem": "data_partida must not be null"
   }
 ]
 ```
+
+---
+
+<details>
+<summary><strong>Versao em Portugues / Portuguese Version</strong></summary>
+
+A **Flight On Time API** e uma aplicacao Back-End (REST) desenvolvida em Java com Spring Boot. Fornece previsoes sobre o status de voos (atrasado ou pontual) utilizando o modelo de Data Science integrado via microservico.
+
+**Fluxo:** A API recebe dados do voo via JSON, comunica-se com o microservico de Data Science via RestClient, e retorna a previsao com probabilidade, cor do semaforo de risco e detalhes utilizados.
+
+**Stack:** Java 21, Spring Boot 3.5.4, MySQL (Flyway), SpringDoc OpenAPI, Resilience4j (Circuit Breaker).
+
+Para detalhes completos de configuracao e exemplos, consulte a versao em ingles acima.
+
+</details>

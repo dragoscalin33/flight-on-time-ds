@@ -1,139 +1,116 @@
-# 🛫 FlightOnTime Frontend
+# FlightOnTime Frontend
 
-🚀 **Flight On Time — Dashboard** é a interface frontend da aplicação que permite aos usuários consultar previsões de atraso de voos com base em origem, destino, companhia e data/hora.
+**Flight On Time — Dashboard** is the frontend interface that allows users to check flight delay predictions based on origin, destination, airline, and date/time.
 
-Este projeto foi desenvolvido com **React + Vite + Tailwind CSS** e se comunica com a API backend para prever atrasos. A interface é responsiva, interativa e conta com **autocomplete para aeroportos e companhias aéreas**, além de validações de IATA.
-
----
-
-## 📌 Funcionalidades
-
-✨ Interface amigável para consulta de voos  
-✈️ Autocomplete de aeroportos e companhias aéreas  
-🕒 Campo de data e hora para consulta precisa  
-📊 Exibição de cards com resultado de previsão  
-🎨 Estilo moderno com Tailwind  
-⚡ Skeleton loading enquanto carrega resultados  
-📍 Validação de códigos IATA (ex: GRU, GIG)
+Built with **React + Vite + Tailwind CSS**, it communicates with the backend API to predict delays. The interface is responsive, interactive, and features **autocomplete for airports and airlines**, along with IATA code validation.
 
 ---
 
-## 📁 Tecnologias
+## Features
 
-✔ React  
-✔ Vite  
-✔ Tailwind CSS  
-✔ Axios (para consumo da API backend)  
-✔ Validações customizadas (IATA)  
-✔ Componentização de interfaces
-
----
-
-## 🚀 Pré-requisitos
-
-Antes de começar, você precisa ter instalado:
-
-✔ Node.js (recomendado v16+)  
-✔ NPM ou Yarn
+- User-friendly interface for flight queries
+- Airport and airline autocomplete
+- Date and time field for precise queries
+- Prediction result cards display
+- Modern styling with Tailwind CSS
+- Skeleton loading while fetching results
+- IATA code validation (e.g., GRU, GIG)
 
 ---
 
-## 📦 Instalação
+## Tech Stack
 
-1. Clone o repositório:
+- React
+- Vite
+- Tailwind CSS
+- Axios (for backend API consumption)
+- Custom validations (IATA)
+- Component-based architecture
+
+---
+
+## Prerequisites
+
+- Node.js (recommended v16+)
+- NPM or Yarn
+
+---
+
+## Installation
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/natashaalmeida/flightontime-frontend.git
+git clone https://github.com/dragoscalin33/flight-on-time-ds.git
+```
 
-2.# 🛫 FlightOnTime Frontend
-
-🚀 **Flight On Time — Dashboard** é a interface frontend da aplicação que permite aos usuários consultar previsões de atraso de voos com base em origem, destino, companhia e data/hora.
-
-Este projeto foi desenvolvido com **React + Vite + Tailwind CSS** e se comunica com a API backend para prever atrasos. A interface é responsiva, interativa e conta com **autocomplete para aeroportos e companhias aéreas**, além de validações de IATA.
-
----
-
-## 📌 Funcionalidades
-
-✨ Interface amigável para consulta de voos  
-✈️ Autocomplete de aeroportos e companhias aéreas  
-🕒 Campo de data e hora para consulta precisa  
-📊 Exibição de cards com resultado de previsão  
-🎨 Estilo moderno com Tailwind  
-⚡ Skeleton loading enquanto carrega resultados  
-📍 Validação de códigos IATA (ex: GRU, GIG)
-
----
-
-## 📁 Tecnologias
-
-✔ React  
-✔ Vite  
-✔ Tailwind CSS  
-✔ Axios (para consumo da API backend)  
-✔ Validações customizadas (IATA)  
-✔ Componentização de interfaces
-
----
-
-## 🚀 Pré-requisitos
-
-Antes de começar, você precisa ter instalado:
-
-✔ Node.js (recomendado v16+)  
-✔ NPM ou Yarn
-
----
-
-## 📦 Instalação
-
-1. Clone o repositório:
+2. Navigate to the project folder:
 ```bash
-git clone https://github.com/natashaalmeida/flightontime-frontend.git
+cd front-end
+```
 
-2. Acesse a pasta do projeto:
-
-cd flightontime-frontend
-
-3.Instale as dependências:
+3. Install dependencies:
+```bash
 npm install
+```
 
-4. Inicie as aplicações
+4. Start the application:
+```bash
 npm run dev
+```
 
-A aplicaçõ irá abrir automaticamnete no navegador em:
-http://localhost:5173
+The application will open automatically in the browser at: `http://localhost:5173`
 
-flightontime-frontend/
+---
+
+## Project Structure
+
+```
+front-end/
 ├─ public/
 ├─ src/
-│  ├─ components/        # Componentes reutilizáveis (CardVoo, SkeletonCard, etc.)
-│  ├─ data/              # Dados estáticos (aeroportos, companhias)
-│  ├─ pages/             # Páginas principais (BuscaVoos, Dashboard, etc.)
-│  ├─ services/          # Configuração de cliente Axios
-│  ├─ utils/             # Validações, helpers, utilitários
-│  ├─ App.jsx            # Ponto de entrada das rotas/UI
-│  └─ index.css          # Estilos globais
+│  ├─ components/        # Reusable components (FlightCard, SkeletonCard, etc.)
+│  ├─ data/              # Static data (airports, airlines)
+│  ├─ pages/             # Main pages (FlightSearch, Dashboard, etc.)
+│  ├─ services/          # Axios client configuration
+│  ├─ utils/             # Validations, helpers, utilities
+│  ├─ App.jsx            # Route/UI entry point
+│  └─ index.css          # Global styles
 ├─ package.json
 ├─ tailwind.config.js
 ├─ vite.config.js
 └─ README.md
+```
 
-📲 Uso
+---
 
-1. Preencha os campos:
-✔ Companhia aérea
-✔ Origem (código IATA ou aeroporto)
-✔ Destino (código IATA ou aeroporto)
-✔ Data e hora do voo
-2. Clique em “Consultar voo”.
-3.Veja o card de resultado com previsão e probabilidade de atraso.
+## Usage
 
-🧠 Observações
+1. Fill in the fields:
+   - Airline
+   - Origin (IATA code or airport name)
+   - Destination (IATA code or airport name)
+   - Flight date and time
+2. Click **"Check flight"**.
+3. View the result card with prediction and delay probability.
 
-🟡 A interface está preparada para receber dados de uma API real.
-🔧 Caso queira conectar ao seu backend, ajuste a baseURL do Axios em src/services/api.js
+---
 
+## Notes
 
+- The interface is designed to work with the backend API.
+- To connect to your backend, adjust the `baseURL` in `src/services/api.js`.
 
+---
 
+<details>
+<summary><strong>Versao em Portugues / Portuguese Version</strong></summary>
 
+O **Flight On Time — Dashboard** e a interface frontend que permite aos usuarios consultar previsoes de atraso de voos com base em origem, destino, companhia e data/hora.
+
+Desenvolvido com **React + Vite + Tailwind CSS**, comunica-se com a API backend para prever atrasos. A interface e responsiva, interativa e conta com autocomplete para aeroportos e companhias aereas, alem de validacoes de IATA.
+
+**Stack:** React, Vite, Tailwind CSS, Axios. **Requisitos:** Node.js 16+, NPM ou Yarn.
+
+Para detalhes completos de instalacao e uso, consulte a versao em ingles acima.
+
+</details>
