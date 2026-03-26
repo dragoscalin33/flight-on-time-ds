@@ -49,29 +49,64 @@ User: "Will my GOL flight from São Paulo to Rio tomorrow at 2pm be delayed?"
 | Weather Data | OpenMeteo API |
 | HTTP Client | httpx (async) |
 
-## Quick Start
+## Quick Start (5 minutes)
+
+You need **3 terminals**. Total install time: ~5 minutes (plus ~5 min for the LLM model download).
 
 ### Prerequisites
 
-- Python 3.11+
-- [Ollama](https://ollama.ai) installed with `llama3.1:8b` model
-- FlightOnTime data-science service running on port 8000 (optional for tool-calling)
+- Python 3.10+
+- Node.js 18+
+- [Ollama](https://ollama.ai) installed
 
-### Setup
+### Step 1 — Download the LLM model (one-time, ~5 min)
+
+```bash
+ollama pull llama3.1:8b
+```
+
+### Step 2 — Start the ML Prediction Service (Terminal 1)
+
+This runs the CatBoost model that predicts flight delays:
+
+```bash
+cd data-science
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python -m uvicorn src.app:app --port 8000
+```
+
+Verify: `curl http://localhost:8000/docs` should show Swagger UI.
+
+### Step 3 — Start the AI Assistant (Terminal 2)
+
+This runs the RAG + Tool-Calling + LLM service:
 
 ```bash
 cd ai-assistant
-
-python -m venv .venv
-source .venv/bin/activate
-
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
 cp .env.example .env
-# Edit .env with your configuration
-
-uvicorn app.main:app --reload --port 8001
+uvicorn app.main:app --port 8001
 ```
+
+Verify: `curl http://localhost:8001/health` should return `{"status": "healthy"}`.
+
+### Step 4 — Start the Frontend (Terminal 3)
+
+```bash
+cd front-end
+npm install
+npm run dev
+```
+
+### Step 5 — Open and test
+
+Open **http://localhost:5173** in your browser. Click the **blue chat button** (bottom-right corner) and ask:
+
+> "Will my GOL flight from Guarulhos to Santos Dumont on March 28 at 12:00 be delayed?"
+
+The AI will call the CatBoost ML model, fetch weather data, and respond with a real prediction.
 
 ### Usage
 
