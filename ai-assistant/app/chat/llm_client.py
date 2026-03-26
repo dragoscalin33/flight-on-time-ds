@@ -72,16 +72,40 @@ class OllamaClient(LLMClient):
         ollama_messages = [{"role": "system", "content": system_prompt}]
 
         for msg in messages:
-            if isinstance(msg.get("content"), str):
-                ollama_messages.append({"role": msg["role"], "content": msg["content"]})
-            elif isinstance(msg.get("content"), list):
-                text_parts = [
-                    block["text"]
-                    for block in msg["content"]
-                    if block.get("type") == "text"
-                ]
-                if text_parts:
-                    ollama_messages.append({"role": msg["role"], "content": "\n".join(text_parts)})
+            content = msg.get("content")
+            role = msg.get("role", "user")
+
+            if isinstance(content, str):
+                ollama_messages.append({"role": role, "content": content})
+            elif isinstance(content, list):
+                tool_use_blocks = [b for b in content if b.get("type") == "tool_use"]
+                tool_result_blocks = [b for b in content if b.get("type") == "tool_result"]
+                text_blocks = [b for b in content if b.get("type") == "text"]
+
+                if tool_use_blocks and role == "assistant":
+                    ollama_messages.append({
+                        "role": "assistant",
+                        "content": "",
+                        "tool_calls": [
+                            {
+                                "function": {
+                                    "name": b["name"],
+                                    "arguments": b["input"],
+                                }
+                            }
+                            for b in tool_use_blocks
+                        ],
+                    })
+                elif tool_result_blocks:
+                    for block in tool_result_blocks:
+                        ollama_messages.append({
+                            "role": "tool",
+                            "content": block.get("content", "{}"),
+                        })
+                elif text_blocks:
+                    text = "\n".join(b["text"] for b in text_blocks if b.get("text"))
+                    if text:
+                        ollama_messages.append({"role": role, "content": text})
 
         ollama_tools = []
         for tool in tools:
@@ -117,11 +141,11 @@ class OllamaClient(LLMClient):
 
         if tool_calls:
             result["stop_reason"] = "tool_use"
-            for tc in tool_calls:
+            for i, tc in enumerate(tool_calls):
                 func = tc.get("function", {})
                 result["content"].append({
                     "type": "tool_use",
-                    "id": f"ollama_{func.get('name', 'unknown')}",
+                    "id": f"ollama_{func.get('name', 'unknown')}_{i}",
                     "name": func.get("name", ""),
                     "input": func.get("arguments", {}),
                 })
