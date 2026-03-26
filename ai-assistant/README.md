@@ -6,58 +6,11 @@ An AI-powered conversational assistant that predicts Brazilian domestic flight d
 
 ## Architecture
 
-```mermaid
-graph TB
-    subgraph "Frontend"
-        UI[React Chat Interface]
-    end
-
-    subgraph "AI Assistant Service"
-        API[FastAPI - Port 8001]
-        CHAT[Chat Service]
-        RAG[RAG Pipeline]
-        TC[Tool Calling Engine]
-        EVAL[Evaluation Pipeline]
-
-        API --> CHAT
-        CHAT --> RAG
-        CHAT --> TC
-    end
-
-    subgraph "Knowledge Base"
-        KB[Airport Guide + Delay Factors + Model Info]
-        EMB[Sentence Transformers]
-        VDB[(ChromaDB)]
-
-        KB --> EMB --> VDB
-        RAG --> VDB
-    end
-
-    subgraph "LLM Provider"
-        LLM{Claude API / Ollama}
-        CHAT --> LLM
-    end
-
-    subgraph "External Tools"
-        ML[CatBoost ML Model - FastAPI :8000]
-        BE[Flight API - Spring Boot :8080]
-        WX[OpenMeteo Weather API]
-
-        TC --> ML
-        TC --> BE
-        TC --> WX
-    end
-
-    UI --> API
-
-    style API fill:#2563eb,color:#fff
-    style CHAT fill:#7c3aed,color:#fff
-    style RAG fill:#059669,color:#fff
-    style TC fill:#d97706,color:#fff
-    style VDB fill:#059669,color:#fff
-    style LLM fill:#dc2626,color:#fff
-    style ML fill:#2563eb,color:#fff
-```
+<p align="center">
+  <a href="https://htmlpreview.github.io/?https://github.com/dragoscalin33/flight-on-time-ds/blob/main/ai-assistant/docs/ai_assistant_architecture.html">
+    <img src="https://img.shields.io/badge/%F0%9F%94%8D_View_Interactive-Architecture_Diagram-blueviolet?style=for-the-badge" alt="View Architecture Diagram">
+  </a>
+</p>
 
 ## How It Works
 

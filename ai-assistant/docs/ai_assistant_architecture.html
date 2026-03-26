@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlightOnTime AI Assistant — Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #38bdf8, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 1rem;
+    margin-bottom: 48px;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* ── Flow Diagram ──────────────────────────────── */
+  .flow-section {
+    margin-bottom: 48px;
+  }
+  .flow-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 24px;
+    color: #38bdf8;
+    text-align: center;
+  }
+
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    align-items: start;
+  }
+
+  .flow-step {
+    background: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .flow-step:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+  }
+  .flow-step.active {
+    border-color: #38bdf8;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+  }
+
+  .flow-icon { font-size: 2rem; margin-bottom: 8px; }
+  .flow-label {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+  .flow-sublabel {
+    font-size: 0.72rem;
+    color: #94a3b8;
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #38bdf8;
+    padding-top: 24px;
+  }
+
+  .flow-detail {
+    margin-top: 16px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 24px;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .flow-detail.visible { display: block; }
+  .flow-detail h3 {
+    color: #38bdf8;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+  .flow-detail p {
+    color: #cbd5e1;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    margin-bottom: 8px;
+  }
+  .flow-detail code {
+    background: #0f172a;
+    color: #38bdf8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.82rem;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Component cards ───────────────────────────── */
+  .components-section {
+    margin-bottom: 48px;
+  }
+  .components-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: #a78bfa;
+    text-align: center;
+  }
+
+  .comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+  }
+  .comp-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .comp-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .comp-card.rag { border-left: 4px solid #22c55e; }
+  .comp-card.tools { border-left: 4px solid #f59e0b; }
+  .comp-card.llm { border-left: 4px solid #ef4444; }
+  .comp-card.eval { border-left: 4px solid #a78bfa; }
+  .comp-card.api { border-left: 4px solid #38bdf8; }
+  .comp-card.frontend { border-left: 4px solid #ec4899; }
+
+  .comp-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .comp-icon { font-size: 1.6rem; }
+  .comp-title { font-weight: 700; font-size: 1rem; }
+
+  .comp-body { font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+  .comp-body ul { padding-left: 16px; margin-top: 8px; }
+  .comp-body li { margin-bottom: 4px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+  }
+  .badge-green { background: #22c55e; color: #0f172a; }
+  .badge-amber { background: #f59e0b; color: #0f172a; }
+  .badge-red { background: #ef4444; color: white; }
+  .badge-blue { background: #38bdf8; color: #0f172a; }
+  .badge-purple { background: #a78bfa; color: #0f172a; }
+  .badge-pink { background: #ec4899; color: white; }
+
+  /* ── Tools section ─────────────────────────────── */
+  .tools-section {
+    margin-bottom: 48px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+  .tools-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: #f59e0b;
+  }
+  .tools-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .tool-card {
+    flex: 1;
+    min-width: 220px;
+    max-width: 320px;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .tool-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .tool-card.predict {
+    background: #14532d;
+    border: 2px solid #22c55e;
+  }
+  .tool-card.airport {
+    background: #1e1b4b;
+    border: 2px solid #818cf8;
+  }
+  .tool-card.weather {
+    background: #172554;
+    border: 2px solid #38bdf8;
+  }
+  .tool-icon { font-size: 2.2rem; margin-bottom: 8px; }
+  .tool-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+  .tool-desc { font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; }
+  .tool-endpoint {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-family: monospace;
+    background: rgba(0,0,0,0.3);
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  /* ── Metrics ───────────────────────────────────── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .metric-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .metric-card:hover { transform: translateY(-2px); }
+  .metric-card .label { color: #94a3b8; font-size: 0.82rem; margin-bottom: 6px; }
+  .metric-card .value { font-size: 1.8rem; font-weight: 700; }
+  .metric-card .value.green { color: #22c55e; }
+  .metric-card .value.blue { color: #60a5fa; }
+  .metric-card .value.amber { color: #f59e0b; }
+  .metric-card .value.purple { color: #a78bfa; }
+  .metric-card .value.pink { color: #ec4899; }
+  .metric-card .detail { color: #64748b; font-size: 0.72rem; margin-top: 4px; }
+
+  /* ── Stack section ─────────────────────────────── */
+  .stack-section {
+    margin-bottom: 40px;
+    background: linear-gradient(135deg, #1e1b4b, #172554);
+    border: 1px solid #3730a3;
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+  .stack-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    color: #a5b4fc;
+  }
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .stack-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #312e81;
+    border-radius: 10px;
+    padding: 12px 16px;
+    transition: transform 0.2s;
+  }
+  .stack-item:hover { transform: translateX(4px); }
+  .stack-icon { font-size: 1.4rem; }
+  .stack-name { font-weight: 600; font-size: 0.9rem; color: #e0e7ff; }
+  .stack-role { font-size: 0.78rem; color: #a5b4fc; }
+
+  .legend {
+    margin-top: 40px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+
+  .click-hint {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.78rem;
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+
+  @media (max-width: 768px) {
+    .flow-grid { grid-template-columns: 1fr; }
+    .flow-arrow { transform: rotate(90deg); padding: 8px 0; }
+    .comp-grid { grid-template-columns: 1fr; }
+    .tools-row { flex-direction: column; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>FlightOnTime AI Assistant</h1>
+  <p class="subtitle">RAG + Tool-Calling + LLM &mdash; Conversational Flight Delay Prediction</p>
+
+  <!-- ── Request Flow ─────────────────────────────── -->
+  <div class="flow-section">
+    <h2>How a Question Becomes an Answer</h2>
+    <p class="click-hint">Click each step to see details</p>
+
+    <div class="flow-grid">
+      <div class="flow-step" onclick="showDetail('user')" id="step-user">
+        <div class="flow-icon">&#128172;</div>
+        <div class="flow-label">User Question</div>
+        <div class="flow-sublabel">Natural language</div>
+      </div>
+
+      <div class="flow-step" onclick="showDetail('rag')" id="step-rag">
+        <div class="flow-icon">&#128269;</div>
+        <div class="flow-label">RAG Retrieval</div>
+        <div class="flow-sublabel">ChromaDB search</div>
+      </div>
+
+      <div class="flow-step" onclick="showDetail('llm')" id="step-llm">
+        <div class="flow-icon">&#129504;</div>
+        <div class="flow-label">LLM Reasoning</div>
+        <div class="flow-sublabel">Claude / Ollama</div>
+      </div>
+
+      <div class="flow-step" onclick="showDetail('tools')" id="step-tools">
+        <div class="flow-icon">&#128295;</div>
+        <div class="flow-label">Tool Calling</div>
+        <div class="flow-sublabel">ML Model + APIs</div>
+      </div>
+
+      <div class="flow-step" onclick="showDetail('response')" id="step-response">
+        <div class="flow-icon">&#9989;</div>
+        <div class="flow-label">Final Response</div>
+        <div class="flow-sublabel">With sources</div>
+      </div>
+    </div>
+
+    <div class="flow-detail" id="detail-user">
+      <h3>Step 1 &mdash; User Question</h3>
+      <p>The user asks a natural language question in <strong>any language</strong> (Portuguese, English, Spanish). Examples:</p>
+      <p><code>"Mi vuelo de GOL de Guarulhos a Santos Dumont el 28 de marzo a las 12h, va a atrasar?"</code></p>
+      <p><code>"Which São Paulo airport has fewer delays?"</code></p>
+      <p><code>"Meu voo da AZUL de Brasília para Recife vai atrasar?"</code></p>
+      <p>The system extracts intent, airline, airports, date/time from natural language &mdash; no forms needed.</p>
+    </div>
+
+    <div class="flow-detail" id="detail-rag">
+      <h3>Step 2 &mdash; RAG Retrieval</h3>
+      <p>The question is converted to a <strong>vector embedding</strong> using sentence-transformers (all-MiniLM-L6-v2) and searched against the knowledge base in ChromaDB.</p>
+      <p>Knowledge base contains <strong>26 chunks</strong> from 3 curated documents:</p>
+      <p>&bull; <code>airport_guide.md</code> &mdash; Delay patterns for 10 major Brazilian airports</p>
+      <p>&bull; <code>delay_factors.md</code> &mdash; Weather, operational, temporal, and geographic factors</p>
+      <p>&bull; <code>model_info.md</code> &mdash; CatBoost model details, metrics, and feature importance</p>
+      <p>Top 3 most relevant chunks are injected into the LLM system prompt as context.</p>
+    </div>
+
+    <div class="flow-detail" id="detail-llm">
+      <h3>Step 3 &mdash; LLM Reasoning</h3>
+      <p>The LLM receives the user's question + RAG context and decides what to do:</p>
+      <p>&bull; <strong>Direct answer</strong>: If the question is about general knowledge (e.g., "why does Congonhas have more delays?")</p>
+      <p>&bull; <strong>Tool call</strong>: If a prediction is needed, the LLM autonomously calls the CatBoost ML model</p>
+      <p>Supports <strong>dual providers</strong>:</p>
+      <p>&bull; <code>Claude API</code> (Anthropic) &mdash; Best quality, requires API key</p>
+      <p>&bull; <code>Ollama</code> (local) &mdash; Free, runs on your machine, no data leaves your computer</p>
+      <p>The LLM abstraction layer means switching providers requires changing one env variable.</p>
+    </div>
+
+    <div class="flow-detail" id="detail-tools">
+      <h3>Step 4 &mdash; Tool Calling</h3>
+      <p>The LLM can autonomously invoke 3 tools:</p>
+      <p>&bull; <strong>predict_flight_delay</strong> &mdash; Calls the CatBoost ML model trained on 2.2M flights</p>
+      <p>&bull; <strong>lookup_airport</strong> &mdash; Searches the airport database (198 airports)</p>
+      <p>&bull; <strong>check_weather</strong> &mdash; Gets real-time weather from OpenMeteo API</p>
+      <p>Tool results are fed back to the LLM, which generates the final human-readable response. This is NOT prompt engineering &mdash; the LLM actually executes API calls and uses real data.</p>
+    </div>
+
+    <div class="flow-detail" id="detail-response">
+      <h3>Step 5 &mdash; Final Response</h3>
+      <p>The response includes:</p>
+      <p>&bull; <strong>Natural language answer</strong> &mdash; Tailored to the user's language</p>
+      <p>&bull; <strong>Risk level</strong> &mdash; &#128994; Low (&lt;35%) / &#128992; Medium (35-70%) / &#128308; High (&gt;70%)</p>
+      <p>&bull; <strong>Source citations</strong> &mdash; Which knowledge documents informed the answer</p>
+      <p>&bull; <strong>Tools used</strong> &mdash; Which ML models/APIs were called</p>
+      <p>&bull; <strong>Latency</strong> &mdash; Response time for observability</p>
+      <p>Every response is transparent about where its information comes from.</p>
+    </div>
+  </div>
+
+  <!-- ── Tools ────────────────────────────────────── -->
+  <div class="tools-section">
+    <h2>LLM Tool-Calling &mdash; The AI Calls Real APIs</h2>
+    <p style="color: #94a3b8; font-size: 0.88rem; margin-bottom: 20px; text-align: center;">
+      The LLM autonomously decides which tools to call based on the user's question
+    </p>
+    <div class="tools-row">
+      <div class="tool-card predict">
+        <div class="tool-icon">&#129302;</div>
+        <div class="tool-name">predict_flight_delay</div>
+        <div class="tool-desc">CatBoost ML model trained on 2.2M Brazilian flights with live weather data</div>
+        <div class="tool-endpoint">POST /predict &rarr; :8000</div>
+      </div>
+      <div class="tool-card airport">
+        <div class="tool-icon">&#9992;&#65039;</div>
+        <div class="tool-name">lookup_airport</div>
+        <div class="tool-desc">Search 198 Brazilian airports by IATA code or name</div>
+        <div class="tool-endpoint">GET /airports &rarr; :8080</div>
+      </div>
+      <div class="tool-card weather">
+        <div class="tool-icon">&#127782;&#65039;</div>
+        <div class="tool-name">check_weather</div>
+        <div class="tool-desc">Real-time weather forecasts at airport coordinates</div>
+        <div class="tool-endpoint">GET /forecast &rarr; OpenMeteo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Architecture Components ──────────────────── -->
+  <div class="components-section">
+    <h2>System Components</h2>
+    <div class="comp-grid">
+      <div class="comp-card rag">
+        <div class="comp-header">
+          <span class="comp-icon">&#128218;</span>
+          <span class="comp-title">RAG Pipeline</span>
+          <span class="badge badge-green">ChromaDB</span>
+        </div>
+        <div class="comp-body">
+          Knowledge base chunked (500 chars, 100 overlap) and embedded with sentence-transformers. Cosine similarity search returns top-3 relevant chunks per query.
+          <ul>
+            <li>3 curated domain documents (aviation, weather, model)</li>
+            <li>26 indexed chunks in vector store</li>
+            <li>Local embeddings &mdash; no API cost</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="comp-card tools">
+        <div class="comp-header">
+          <span class="comp-icon">&#128295;</span>
+          <span class="comp-title">Tool-Calling Engine</span>
+          <span class="badge badge-amber">3 TOOLS</span>
+        </div>
+        <div class="comp-body">
+          LLM autonomously invokes real ML models and APIs. Tool definitions follow the Anthropic tool-use spec. Results are fed back for natural language generation.
+          <ul>
+            <li>Deduplication prevents repeated calls</li>
+            <li>Error handling with graceful fallback</li>
+            <li>Anti-hallucination guards when tools fail</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="comp-card llm">
+        <div class="comp-header">
+          <span class="comp-icon">&#129504;</span>
+          <span class="comp-title">LLM Abstraction</span>
+          <span class="badge badge-red">DUAL</span>
+        </div>
+        <div class="comp-body">
+          Provider-agnostic design supports cloud and local LLMs through a unified interface. Switch with one env variable.
+          <ul>
+            <li>Claude API (Anthropic) &mdash; production quality</li>
+            <li>Ollama (local) &mdash; free, private, offline</li>
+            <li>Same tool-calling protocol for both</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="comp-card eval">
+        <div class="comp-header">
+          <span class="comp-icon">&#128200;</span>
+          <span class="comp-title">Evaluation Pipeline</span>
+          <span class="badge badge-purple">10 CASES</span>
+        </div>
+        <div class="comp-body">
+          Automated evaluation across predictions, knowledge questions, lookups, and multilingual queries.
+          <ul>
+            <li>Tool accuracy &mdash; did it call the right tool?</li>
+            <li>Context accuracy &mdash; did RAG retrieve relevant docs?</li>
+            <li>Latency tracking per query</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="comp-card api">
+        <div class="comp-header">
+          <span class="comp-icon">&#9889;</span>
+          <span class="comp-title">FastAPI Service</span>
+          <span class="badge badge-blue">PORT 8001</span>
+        </div>
+        <div class="comp-body">
+          RESTful API with auto-generated Swagger docs. Session-based chat history and CORS support.
+          <ul>
+            <li>POST /chat &mdash; send message, get AI response</li>
+            <li>GET /chat/history &mdash; conversation replay</li>
+            <li>GET /health &mdash; service status</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="comp-card frontend">
+        <div class="comp-header">
+          <span class="comp-icon">&#128488;&#65039;</span>
+          <span class="comp-title">React Chat Widget</span>
+          <span class="badge badge-pink">EMBEDDED</span>
+        </div>
+        <div class="comp-body">
+          Floating chat widget integrated into the existing Flight on Time dashboard. Tailwind CSS styling.
+          <ul>
+            <li>Suggestion buttons for common questions</li>
+            <li>Tool-call badges and source citations</li>
+            <li>Typing indicator and session management</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Key Metrics ──────────────────────────────── -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="label">ML Model Recall</div>
+      <div class="value green">90.8%</div>
+      <div class="detail">CatBoost on 2.2M flights</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Knowledge Chunks</div>
+      <div class="value blue">26</div>
+      <div class="detail">3 curated documents</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">LLM Tools</div>
+      <div class="value amber">3</div>
+      <div class="detail">Predict + Airport + Weather</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">LLM Providers</div>
+      <div class="value purple">2</div>
+      <div class="detail">Claude API + Ollama</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Eval Test Cases</div>
+      <div class="value pink">10</div>
+      <div class="detail">Automated pipeline</div>
+    </div>
+  </div>
+
+  <!-- ── Tech Stack ───────────────────────────────── -->
+  <div class="stack-section">
+    <h2>Technology Stack</h2>
+    <div class="stack-grid">
+      <div class="stack-item">
+        <span class="stack-icon">&#9889;</span>
+        <div>
+          <div class="stack-name">FastAPI + Pydantic</div>
+          <div class="stack-role">API framework with type validation</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#129504;</span>
+        <div>
+          <div class="stack-name">Claude API / Ollama</div>
+          <div class="stack-role">LLM providers (cloud + local)</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#128218;</span>
+        <div>
+          <div class="stack-name">ChromaDB</div>
+          <div class="stack-role">Vector store for RAG retrieval</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#129302;</span>
+        <div>
+          <div class="stack-name">sentence-transformers</div>
+          <div class="stack-role">Local embeddings (all-MiniLM-L6-v2)</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#128200;</span>
+        <div>
+          <div class="stack-name">CatBoost ML Model</div>
+          <div class="stack-role">Flight delay prediction engine</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <span class="stack-icon">&#9881;&#65039;</span>
+        <div>
+          <div class="stack-name">React + Tailwind CSS</div>
+          <div class="stack-role">Embedded chat widget</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="legend">FlightOnTime AI Assistant &mdash; RAG + Tool-Calling + LLM &mdash; v1.0</p>
+</div>
+
+<script>
+  function showDetail(id) {
+    document.querySelectorAll('.flow-detail').forEach(el => el.classList.remove('visible'));
+    document.querySelectorAll('.flow-step').forEach(el => el.classList.remove('active'));
+
+    const detail = document.getElementById('detail-' + id);
+    const step = document.getElementById('step-' + id);
+    if (detail) detail.classList.add('visible');
+    if (step) step.classList.add('active');
+  }
+
+  // Auto-play on load
+  const steps = ['user', 'rag', 'llm', 'tools', 'response'];
+  let current = 0;
+  function autoPlay() {
+    if (current < steps.length) {
+      showDetail(steps[current]);
+      current++;
+      setTimeout(autoPlay, 2500);
+    }
+  }
+  setTimeout(autoPlay, 800);
+</script>
+</body>
+</html>
