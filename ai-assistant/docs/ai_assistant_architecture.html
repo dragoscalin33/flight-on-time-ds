@@ -334,31 +334,31 @@
     <p class="click-hint">Click each step to see details</p>
 
     <div class="flow-grid">
-      <div class="flow-step" onclick="showDetail('user')" id="step-user">
+      <div class="flow-step" onclick="showDetail('user', true)" id="step-user">
         <div class="flow-icon">&#128172;</div>
         <div class="flow-label">User Question</div>
         <div class="flow-sublabel">Natural language</div>
       </div>
 
-      <div class="flow-step" onclick="showDetail('rag')" id="step-rag">
+      <div class="flow-step" onclick="showDetail('rag', true)" id="step-rag">
         <div class="flow-icon">&#128269;</div>
         <div class="flow-label">RAG Retrieval</div>
         <div class="flow-sublabel">ChromaDB search</div>
       </div>
 
-      <div class="flow-step" onclick="showDetail('llm')" id="step-llm">
+      <div class="flow-step" onclick="showDetail('llm', true)" id="step-llm">
         <div class="flow-icon">&#129504;</div>
         <div class="flow-label">LLM Reasoning</div>
         <div class="flow-sublabel">Claude / Ollama</div>
       </div>
 
-      <div class="flow-step" onclick="showDetail('tools')" id="step-tools">
+      <div class="flow-step" onclick="showDetail('tools', true)" id="step-tools">
         <div class="flow-icon">&#128295;</div>
         <div class="flow-label">Tool Calling</div>
         <div class="flow-sublabel">ML Model + APIs</div>
       </div>
 
-      <div class="flow-step" onclick="showDetail('response')" id="step-response">
+      <div class="flow-step" onclick="showDetail('response', true)" id="step-response">
         <div class="flow-icon">&#9989;</div>
         <div class="flow-label">Final Response</div>
         <div class="flow-sublabel">With sources</div>
@@ -628,7 +628,15 @@
 </div>
 
 <script>
-  function showDetail(id) {
+  let userClicked = false;
+  let autoPlayTimer = null;
+
+  function showDetail(id, fromUser) {
+    if (fromUser) {
+      userClicked = true;
+      if (autoPlayTimer) clearTimeout(autoPlayTimer);
+    }
+
     document.querySelectorAll('.flow-detail').forEach(el => el.classList.remove('visible'));
     document.querySelectorAll('.flow-step').forEach(el => el.classList.remove('active'));
 
@@ -638,14 +646,15 @@
     if (step) step.classList.add('active');
   }
 
-  // Auto-play on load
+  // Auto-play on load — stops when user clicks
   const steps = ['user', 'rag', 'llm', 'tools', 'response'];
   let current = 0;
   function autoPlay() {
+    if (userClicked) return;
     if (current < steps.length) {
-      showDetail(steps[current]);
+      showDetail(steps[current], false);
       current++;
-      setTimeout(autoPlay, 2500);
+      autoPlayTimer = setTimeout(autoPlay, 2500);
     }
   }
   setTimeout(autoPlay, 800);
