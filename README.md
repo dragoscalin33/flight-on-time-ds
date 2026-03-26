@@ -1,8 +1,8 @@
 # FlightOnTime — Intelligent Flight Delay Prediction System
 
-**Project Status:** Production (v6.0 — Production Pipeline)
+**Project Status:** Production (v6.0 — Production Pipeline) + AI Assistant (v1.0)
 **Live Demo:** [Launch App (Oracle Cloud)](http://flight-on-time.vm3.arbly.com/)
-**Architecture:** Monorepo (Frontend + Backend + Data Science + ML Pipeline) | Oracle Cloud (OCI)
+**Architecture:** Monorepo (Frontend + Backend + Data Science + ML Pipeline + AI Assistant) | Oracle Cloud (OCI)
 
 **FlightOnTime** is a full-stack solution for predicting commercial flight delays in Brazil. The system combines advanced Machine Learning, real-time weather data, and a microservices architecture to help passengers plan safer trips.
 
@@ -14,6 +14,7 @@
 flight-on-time/
 ├── data-science/        # Original ML research (CatBoost v5.0, notebooks, prototyping)
 ├── data-science-prod/   # Production ML pipeline (v6.0 — Hydra + MLflow + K-Fold CV)
+├── ai-assistant/        # AI Chatbot (RAG + Tool-Calling + LLM) — NEW
 ├── back-end/            # API Gateway (Java 21, Spring Boot)
 ├── front-end/           # Web Dashboard (React, Vite, Tailwind)
 └── infrastructure/      # Oracle Cloud deployment configs
@@ -58,7 +59,24 @@ The original research environment where the CatBoost model was developed. Includ
 *Modelo / Model:* CatBoost Classifier with live weather integration (OpenMeteo)
 *API:* FastAPI (Python)
 
-### 3. Backend API
+### 3. AI Assistant (NEW — v1.0)
+
+**Directory:** [`/ai-assistant`](./ai-assistant)
+[Full Technical Documentation](./ai-assistant/README.md)
+
+A conversational AI layer that lets users ask natural language questions about flight delays. Combines RAG (Retrieval-Augmented Generation) with tool-calling to invoke the CatBoost ML model, query airport data, and check live weather.
+
+| Component | Technology |
+|:----------|:-----------|
+| RAG | ChromaDB + sentence-transformers embeddings |
+| LLM | Claude API (Anthropic) / Ollama (local) |
+| Tool-Calling | Flight prediction, airport lookup, weather check |
+| Evaluation | Automated pipeline (tool accuracy, context retrieval, latency) |
+| API | FastAPI |
+
+This module represents the evolution from **Data Scientist** (building ML models) to **AI Engineer** (building intelligent applications on top of ML models).
+
+### 4. Backend API
 
 **Directory:** [`/back-end`](./back-end)
 [Technical Documentation](./back-end/README.md)
@@ -67,7 +85,7 @@ The system orchestrator. Routes requests, connects to the ML engine, and applies
 
 *Stack:* Java 21 + Spring Boot 3.5.4 + MySQL (Flyway migrations)
 
-### 4. Frontend Dashboard
+### 5. Frontend Dashboard
 
 **Directory:** [`/front-end`](./front-end)
 [Technical Documentation](./front-end/README.md)
@@ -114,7 +132,19 @@ cd back-end
 ./mvnw spring-boot:run
 ```
 
-### Step 3: Start the Frontend (React)
+### Step 3: Start the AI Assistant (optional)
+
+```bash
+cd ai-assistant
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --port 8001
+```
+
+Open `http://localhost:8001/docs` for Swagger UI
+
+### Step 4: Start the Frontend (React)
 
 ```bash
 cd front-end
@@ -146,6 +176,7 @@ The system translates the ML probability into a visual risk indicator:
 | **Backend** | Java 21, Spring Boot 3.5.4, MySQL, Flyway |
 | **ML Research** | Python, CatBoost, Jupyter, FastAPI |
 | **ML Production** | Hydra, MLflow, Pandera, Stratified K-Fold CV |
+| **AI Assistant** | RAG (ChromaDB), LLM (Claude/Ollama), Tool-Calling, FastAPI |
 | **External Data** | Open-Meteo API (real-time weather forecasts) |
 | **Infrastructure** | Oracle Cloud Infrastructure (OCI), Docker |
 

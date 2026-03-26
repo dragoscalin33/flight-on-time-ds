@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import BuscaVoos from "./pages/BuscaVoos";
 import Footer from "./components/Footer";
+import ChatWidget from "./components/chat/ChatWidget";
 
 export default function App() {
   return (
@@ -8,6 +9,7 @@ export default function App() {
       <Header />
       <BuscaVoos />
       <Footer />
+      <ChatWidget />
     </>
   );
 }

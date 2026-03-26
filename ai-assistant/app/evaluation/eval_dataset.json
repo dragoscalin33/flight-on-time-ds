@@ -1,0 +1,62 @@
+[
+  {
+    "question": "What is the probability of delay for a GOL flight from Congonhas to Santos Dumont tomorrow at 2pm?",
+    "expected_tools": ["predict_flight_delay"],
+    "expected_context": ["airport_guide", "delay_factors"],
+    "category": "prediction"
+  },
+  {
+    "question": "Which airports in São Paulo have the most delays?",
+    "expected_tools": [],
+    "expected_context": ["airport_guide"],
+    "category": "knowledge"
+  },
+  {
+    "question": "What's the weather like at Guarulhos airport today?",
+    "expected_tools": ["check_weather"],
+    "expected_context": [],
+    "category": "weather"
+  },
+  {
+    "question": "Is it better to fly in the morning or afternoon during the rainy season?",
+    "expected_tools": [],
+    "expected_context": ["delay_factors"],
+    "category": "advice"
+  },
+  {
+    "question": "I have an AZUL flight from Brasília to Recife next Monday at 16:00. Will it be on time?",
+    "expected_tools": ["predict_flight_delay"],
+    "expected_context": ["airport_guide", "delay_factors"],
+    "category": "prediction"
+  },
+  {
+    "question": "What IATA code does Congonhas airport have?",
+    "expected_tools": ["lookup_airport"],
+    "expected_context": [],
+    "category": "lookup"
+  },
+  {
+    "question": "How does the FlightOnTime model work? What features does it use?",
+    "expected_tools": [],
+    "expected_context": ["model_info"],
+    "category": "technical"
+  },
+  {
+    "question": "Tenho um voo da TAM de Guarulhos para Salvador amanhã às 10h. Vai atrasar?",
+    "expected_tools": ["predict_flight_delay"],
+    "expected_context": ["airport_guide"],
+    "category": "prediction_pt"
+  },
+  {
+    "question": "Why are flights from Congonhas more often delayed than from Guarulhos?",
+    "expected_tools": [],
+    "expected_context": ["airport_guide", "delay_factors"],
+    "category": "knowledge"
+  },
+  {
+    "question": "What is the recall of the prediction model and why was 0.35 chosen as the threshold?",
+    "expected_tools": [],
+    "expected_context": ["model_info"],
+    "category": "technical"
+  }
+]
